@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block main %}
+<section class="hero" data-hero aria-roledescription="carousel" aria-label="Featured films">
+  {% for m in featured %}
+  <div class="hero-slide {{ 'on' if loop.first }}" data-slide aria-hidden="{{ 'false' if loop.first else 'true' }}">
+    {{ ui.art(m, badges=False, show_title=False) }}
+    <div class="art-mark" style="--c3:{{ m.c3 }}" aria-hidden="true">{{ m.title.split()[0] }}</div>
+  </div>
+  {% endfor %}
+  <div class="wrap">
+    {% for m in featured %}
+    {% set a = access_for(m) %}
+    <div class="hero-content" data-slide-content {% if not loop.first %}hidden{% endif %}>
+      <span class="eyebrow">{{ ui.icon('spark') }} {% if m.access == 'premiere' %}New premiere{% elif m.award %}{{ m.award }}{% else %}Mboni pick · {{ m.country }}{% endif %}</span>
+      <h1>{{ m.title }}</h1>
+      <p class="tagline">{{ m.tagline }}</p>
+      <div class="meta"><span>{{ m.year }}</span><span class="dot">{{ m.runtime|runtime }}</span><span class="dot">{{ m.age }}</span><span class="dot">{{ m.language }}</span>{% if m.score %}<span class="dot">★ {{ m.score }}</span>{% endif %}</div>
+      <p class="syn">{{ m.synopsis }}</p>
+      <div class="hero-actions">
+        {% if a.can_watch %}
+        <a class="btn btn-light" href="{{ url_for('main.watch', slug=m.slug) }}">{{ ui.icon('play') }} {{ t('watch_now') }}</a>
+        {% else %}
+        <a class="btn btn-gold" href="{{ url_for('main.detail', slug=m.slug) }}#watch-options">{{ ui.icon('ticket') }} {{ t('rent') }} · {{ a.rent_price|money }}</a>
+        <a class="btn btn-glass" href="{{ url_for('main.watch', slug=m.slug, trailer=1) }}">{{ ui.icon('play') }} {{ t('trailer') }}</a>
+        {% endif %}
+        <a class="btn btn-glass" href="{{ url_for('main.detail', slug=m.slug) }}">{{ ui.icon('info') }} {{ t('more_info') }}</a>
+        <button class="btn btn-glass icon-btn" type="button" data-watchlist="{{ m.slug }}" aria-pressed="{{ 'true' if m.id in watchlist else 'false' }}" aria-label="My List">{{ ui.icon('check' if m.id in watchlist else 'plus') }}</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if featured|length > 1 %}
+  <div class="hero-dots" role="tablist" aria-label="Choose featured film">
+    {% for m in featured %}<button type="button" role="tab" aria-label="{{ m.title }}" data-dot="{{ loop.index0 }}" {% if loop.first %}aria-current="true"{% endif %}></button>{% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% if in_cart.n %}
+<div class="wrap"><a class="cart-nudge" href="{{ url_for('shop.cart') }}">{{ ui.icon('cart') }}<span><b>You left {{ in_cart.q }} cop{{ 'y' if in_cart.q == 1 else 'ies' }} in your cart.</b> Pick up where you stopped, it only takes a minute with MoMo.</span>{{ ui.icon('next') }}</a></div>
+{% endif %}
+
+<div class="wrap">
+  {% if g.profile.is_kids %}
+  <div class="panel panel-tight row-gap" style="margin-top:-20px;position:relative;border-color:var(--leaf)"><span class="tag tag-leaf">Kids profile</span> Only family-friendly films are shown. <a class="gold" href="{{ url_for('main.profiles') }}" style="font-weight:700">Switch profile</a></div>
+  {% endif %}
+
+  <section class="row" style="margin-top:-6px;position:relative">
+    <div class="row-head"><h2>{{ t('mood') }}</h2><a href="{{ url_for('main.surprise') }}"><span class="ic16">{{ ui.icon('shuffle') }}</span> {{ t('surprise') }}</a></div>
+    <div class="chip-rail">
+      {% for key, (label, genre) in moods.items() %}
+      <a class="chip" href="{{ url_for('main.search', mood=key) }}">{{ {'laugh':'😂','cry':'🥹','thrill':'😱','love':'💛','learn':'🧠','family':'👨‍👩‍👧'}[key] }} {{ label }}</a>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% for key, title, items in rows %}
+  <section class="row" aria-labelledby="row-{{ key }}">
+    <div class="row-head"><h2 id="row-{{ key }}">{{ t(title) }}</h2>
+      {% if key == 'rwanda' %}<a href="{{ url_for('main.search', country='Rwanda') }}">See all</a>
+      {% elif key == 'kids' %}<a href="{{ url_for('main.search', genre='Family') }}">See all</a>
+      {% elif key == 'new' %}<a href="{{ url_for('main.search', access='premiere') }}">See all</a>{% endif %}
+    </div>
+    {% if key == 'continue' %}
+      <div class="rail-wrap"><div class="rail wide">
+        {% for m in items %}
+        <a class="card wide-card" href="{{ url_for('main.watch', slug=m.slug) }}" aria-label="Resume {{ m.title }}">
+          {{ ui.art(m, cls='wide') }}
+          <span class="bar"><i style="width:{{ (100 * m.position / m.duration)|int }}%"></i></span>
+          <span class="card-meta"><strong>{{ m.title }}</strong><span>{{ ((m.duration - m.position) / 60)|round(0, 'ceil')|int }} min left · {{ t('resume') }} ▶</span></span>
+        </a>
+        {% endfor %}
+      </div></div>
+    {% else %}
+      {{ ui.rail(items, progress, watchlist, ranked=(key == 'top10')) }}
+    {% endif %}
+  </section>
+  {% endfor %}
+
+  <section class="row">
+    <div class="row-head"><h2>{{ t('explore_africa') }}</h2></div>
+    <div class="country-grid">
+      {% for c in countries %}
+      <a class="country" href="{{ url_for('main.search', country=c) }}"><b>{{ c }}</b><span class="faint">Explore</span><span class="cc" aria-hidden="true">{{ COUNTRY_CODES.get(c, c[:2]|upper) }}</span></a>
+      {% endfor %}
+    </div>
+  </section>
+  <div class="spacer"></div>
+</div>
+{% endblock %}

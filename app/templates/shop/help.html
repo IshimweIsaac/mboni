@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Help &amp; contact · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>Help centre</h1><p class="muted" style="margin:6px 0 0">Quick answers first. If you're still stuck, write to us and a person in Kigali will reply.</p></div></div>
+  <div class="help-grid">
+    <section class="faq">
+      <h2 style="margin-bottom:6px">Frequently asked questions</h2>
+      <details open><summary>How does the cart work?</summary><p>Add as many films as you like, choose Rent (48 hours) or Buy (keep forever) for each one, and pay once. Films arrive in your Library the moment the payment is approved.</p></details>
+      <details><summary>Why would I buy more than one copy?</summary><p>Extra copies become gift codes. Send one to a friend or a relative abroad; they enter it at <a class="gold" href="{{ url_for('shop.redeem') }}">Redeem a gift</a> and the film is theirs.</p></details>
+      <details><summary>What do the order statuses mean?</summary><p><b>Pending</b>: we're waiting for your payment. <b>Paid</b>: money received. <b>Delivered</b>: the films are in your Library and gift codes are issued. An order can also be <b>cancelled</b> before payment, or <b>refunded</b> by our team.</p></details>
+      <details><summary>My MoMo payment failed. Was I charged?</summary><p>No. If the network declines, nothing leaves your wallet. Your order stays saved under <a class="gold" href="{{ url_for('shop.orders') }}">My orders</a> so you can pay again.</p></details>
+      <details><summary>What is the difference between renting and buying?</summary><p>A rental gives you 48 hours to watch. Buying keeps the film in your Library forever and lets you download it for offline viewing.</p></details>
+      <details><summary>How much data does a film use?</summary><p>About 180 MB per hour in Data saver (240p) and 450 MB per hour in Standard (480p). Each film page shows the estimate for its runtime.</p></details>
+      <details><summary>Can I cancel my subscription?</summary><p>Yes, any time from Settings. You keep access until the end of the 30 days you paid for.</p></details>
+      <details><summary>Is there anything for children?</summary><p>Yes. A Kids profile only shows family and animated films, and only those films can go in its cart.</p></details>
+    </section>
+
+    <aside class="stack">
+      <form class="panel stack" method="post" id="contact-form" novalidate>
+        <input type="hidden" name="csrf" value="{{ csrf_token }}">
+        <h2>Send us a message</h2>
+        {% if errors %}<div class="toast error" role="alert" style="animation:none">Please check the highlighted fields.</div>{% endif %}
+        <div class="field"><label for="c-name">Your name</label><input class="input" id="c-name" name="name" autocomplete="name" value="{{ form.name }}" required {% if errors.name %}aria-invalid="true" aria-describedby="e-name"{% endif %}>{% if errors.name %}<span class="error-text" id="e-name">{{ errors.name }}</span>{% endif %}</div>
+        <div class="field"><label for="c-email">Email</label><input class="input" id="c-email" name="email" type="email" autocomplete="email" value="{{ form.email }}" required {% if errors.email %}aria-invalid="true" aria-describedby="e-email"{% endif %}>{% if errors.email %}<span class="error-text" id="e-email">{{ errors.email }}</span>{% endif %}</div>
+        <div class="field"><label for="c-topic">Topic</label><select class="input" id="c-topic" name="topic">{% for tp in topics %}<option {% if form.topic == tp %}selected{% endif %}>{{ tp }}</option>{% endfor %}</select></div>
+        <div class="field"><label for="c-body">Message</label><textarea class="input" id="c-body" name="body" rows="5" maxlength="2000" placeholder="Tell us what happened. If it's about an order, include its number (ORD-…)." required {% if errors.body %}aria-invalid="true" aria-describedby="e-body"{% endif %}>{{ form.body }}</textarea>{% if errors.body %}<span class="error-text" id="e-body">{{ errors.body }}</span>{% endif %}</div>
+        <button class="btn btn-gold btn-block">{{ ui.icon('mail') }} Send message</button>
+      </form>
+      <div class="panel panel-tight contact-card">
+        <span>{{ ui.icon('pin') }} KG 7 Ave, Kacyiru, Kigali</span>
+        <a href="tel:+250788000555">{{ ui.icon('phone') }} +250 788 000 555</a>
+        <a href="mailto:hello@mboni.rw">{{ ui.icon('mail') }} hello@mboni.rw</a>
+        <span>{{ ui.icon('clock') }} We reply within one working day</span>
+      </div>
+    </aside>
+  </div>
+  <div class="spacer"></div>
+</div>
+{% endblock %}

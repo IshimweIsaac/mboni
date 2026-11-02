@@ -1,0 +1,25 @@
+{% import "partials/macros.html" as ui with context %}
+<div class="plans">
+  {% for p in plans %}
+  {% set current = sub and sub.plan_code == p.code %}
+  <div class="plan {{ 'best' if p.code == 'standard' }} {{ 'current' if current }}">
+    {% if current %}<span class="ribbon tag tag-leaf">Your plan</span>{% elif p.code == 'standard' %}<span class="ribbon tag tag-gold">Most popular</span>{% endif %}
+    <h3>{{ p.name }}</h3>
+    <p class="muted" style="margin:6px 0 0">{{ p.blurb }}</p>
+    <div class="price">{{ "{:,}".format(p.price) }} <small>RWF / month</small></div>
+    <span class="faint" style="font-size:.85rem">≈ {{ "%.2f"|format(p.price / 1400) }} USD · less than {{ (p.price / 30)|round(0, 'ceil')|int }} RWF a day</span>
+    <ul>
+      <li>{{ ui.icon('check') }} {{ p.quality }} picture</li>
+      <li>{{ ui.icon('check') }} {{ p.screens }} screen{{ 's' if p.screens > 1 }} at once</li>
+      <li>{{ ui.icon('check') }} {{ p.profiles }} profile{{ 's' if p.profiles > 1 }}{% if p.profiles > 1 %} incl. Kids{% endif %}</li>
+      <li>{{ ui.icon('check') }} {{ p.downloads }} offline downloads</li>
+      <li>{{ ui.icon('check') }} 20% off premiere rentals</li>
+    </ul>
+    {% if current %}
+      <a class="btn btn-block" href="{{ url_for('main.settings') }}">Manage plan</a>
+    {% else %}
+      <a class="btn btn-block {{ 'btn-gold' if p.code == 'standard' }}" href="{{ url_for('billing.checkout', kind='subscription', plan=p.code) }}">{{ 'Switch to' if sub else 'Choose' }} {{ p.name }}</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>

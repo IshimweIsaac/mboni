@@ -1,0 +1,23 @@
+      <fieldset style="border:0;padding:0;margin:0"><legend class="sr-only">Payment method</legend>
+        <div class="methods">
+          <div class="method"><input type="radio" name="method" id="m-mtn" value="mtn" {% if form.method == 'mtn' %}checked{% endif %}><label for="m-mtn"><span class="logo-dot mtn">MoMo</span>MTN Mobile Money</label></div>
+          <div class="method"><input type="radio" name="method" id="m-airtel" value="airtel" {% if form.method == 'airtel' %}checked{% endif %}><label for="m-airtel"><span class="logo-dot airtel">airtel</span>Airtel Money</label></div>
+          <div class="method"><input type="radio" name="method" id="m-card" value="card" {% if form.method == 'card' %}checked{% endif %}><label for="m-card"><span class="logo-dot cardc">VISA</span>Card</label></div>
+        </div>
+      </fieldset>
+      <div class="pay-fields stack" data-for="mtn airtel">
+        <div class="field"><label for="phone">Mobile money number</label><input class="input" id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="078 812 3456" value="{{ form.phone }}" {% if errors.phone %}aria-invalid="true" aria-describedby="e-phone"{% endif %}>
+          {% if errors.phone %}<span class="error-text" id="e-phone">{{ errors.phone }}</span>{% else %}<span class="hint">You'll get a prompt on this phone to approve with your PIN.</span>{% endif %}</div>
+      </div>
+      <div class="pay-fields stack" data-for="card">
+        <div class="field"><label for="card">Card number</label><input class="input" id="card" name="card" inputmode="numeric" autocomplete="cc-number" placeholder="4242 4242 4242 4242" value="{{ form.card }}" data-card {% if errors.card %}aria-invalid="true" aria-describedby="e-card"{% endif %}>{% if errors.card %}<span class="error-text" id="e-card">{{ errors.card }}</span>{% endif %}</div>
+        <div class="row-gap" style="align-items:flex-start">
+          <div class="field" style="flex:1"><label for="expiry">Expiry</label><input class="input" id="expiry" name="expiry" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" value="{{ form.expiry }}" data-expiry maxlength="5" {% if errors.expiry %}aria-invalid="true" aria-describedby="e-exp"{% endif %}>{% if errors.expiry %}<span class="error-text" id="e-exp">{{ errors.expiry }}</span>{% endif %}</div>
+          <div class="field" style="flex:1"><label for="cvc">CVC</label><input class="input" id="cvc" name="cvc" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4" value="{{ form.cvc }}" {% if errors.cvc %}aria-invalid="true" aria-describedby="e-cvc"{% endif %}>{% if errors.cvc %}<span class="error-text" id="e-cvc">{{ errors.cvc }}</span>{% endif %}</div>
+        </div>
+      </div>
+      {% if show_promo %}
+      <div class="field"><label for="promo">Promo code <span class="faint">(optional)</span></label>
+        <div class="row-gap"><input class="input" id="promo" name="promo" value="{{ form.promo }}" placeholder="e.g. STUDENT50" style="flex:1;text-transform:uppercase" {% if errors.promo %}aria-invalid="true"{% endif %}><button class="btn" type="button" id="apply-promo" data-url="{{ url_for('billing.api_promo') }}">Apply</button></div>
+        <span class="{{ 'error-text' if errors.promo else 'hint' }}" id="promo-msg" aria-live="polite">{{ errors.promo or '' }}</span></div>
+      {% endif %}

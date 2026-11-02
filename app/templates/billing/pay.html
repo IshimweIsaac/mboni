@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Approve payment · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page" style="max-width:640px;text-align:center">
+  <div class="steps"><span class="done"><b>✓</b> Choose</span><span class="on"><b>2</b> Pay</span><span><b>3</b> Watch</span></div>
+  {% if tx.method == 'card' %}
+    <h1 style="font-size:clamp(1.5rem,4vw,2.2rem)">Confirming with your bank…</h1>
+    <p class="muted">3-D Secure check for card {{ tx.account.rstrip('!') }}.</p>
+    <div class="ring" style="margin:30px auto"></div>
+  {% else %}
+    <h1 style="font-size:clamp(1.5rem,4vw,2.2rem)">Check your phone</h1>
+    <p class="muted">We sent a {{ methods[tx.method] }} request to <b>{{ tx.account[:3] }}*** **{{ tx.account[-2:] }}</b>. Enter your PIN to approve.</p>
+    <div class="phone-mock" aria-hidden="true" style="margin:26px auto">
+      <div class="phone-screen">
+        <div class="ussd">{{ 'MTN MoMo' if tx.method == 'mtn' else 'Airtel Money' }}<br>Pay {{ "{:,}".format(tx.amount) }} RWF to MBONI STREAMING LTD<br>Ref: {{ tx.ref }}<br><br>Enter PIN to confirm:<br><span id="pin-dots">_ _ _ _ _</span></div>
+        <div class="ring" style="width:34px;height:34px;border-width:4px"></div>
+      </div>
+    </div>
+    <p class="hint">No prompt? Dial <b>{{ '*182*7*1#' if tx.method == 'mtn' else '*500#' }}</b> to see pending approvals.</p>
+  {% endif %}
+  <p style="font-size:1.6rem;font-weight:800" class="display">{{ tx.amount|money }}</p>
+  <form method="post" action="{{ url_for('billing.confirm', ref=tx.ref) }}" id="confirm-form" class="row-gap" style="justify-content:center;margin-top:20px">
+    <input type="hidden" name="csrf" value="{{ csrf_token }}">
+    <button class="btn btn-gold" name="action" value="approve" id="approve-btn">{{ ui.icon('check') }} I've approved it</button>
+    <button class="btn btn-ghost" name="action" value="cancel">Cancel payment</button>
+  </form>
+  <p class="hint" style="margin-top:14px" aria-live="polite" id="auto-msg">Demo: we'll auto-approve in <b id="auto-count">6</b>s.</p>
+</div>
+{% endblock %}

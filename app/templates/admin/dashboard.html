@@ -1,0 +1,68 @@
+{% extends "admin/_base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Admin dashboard · Mboni{% endblock %}
+{% block admin %}
+<div class="page-head"><div><h1>Dashboard</h1><p class="muted" style="margin:6px 0 0">Last 30 days</p></div><a class="btn btn-sm btn-gold" href="{{ url_for('admin.movie_edit') }}">{{ ui.icon('plus') }} Add film</a></div>
+<div class="kpis">
+  <div class="kpi"><span>Revenue</span><b>{{ stats.revenue|money }}</b><small>≈ {{ "{:,.0f}".format(stats.revenue / 1400) }} USD</small></div>
+  <div class="kpi"><span>Active subscribers</span><b>{{ stats.subs }}</b><small>of {{ stats.users }} members</small></div>
+  <div class="kpi"><span>Live rentals</span><b>{{ stats.rentals }}</b><small>within 48h window</small></div>
+  <div class="kpi"><span>Owed to filmmakers</span><b>{{ stats.creator_payout|money }}</b><small>{{ creator_share }}% of rentals + sales</small></div>
+  <div class="kpi"><span>Failed payments</span><b>{{ stats.failed }}</b><small>follow up by SMS</small></div>
+  <a class="kpi kpi-link" href="{{ url_for('admin.orders', status='paid') }}"><span>Orders to deliver</span><b>{{ stats.to_deliver }}</b><small>{{ stats.orders }} cart orders · {{ stats.awaiting }} awaiting payment</small></a>
+  <a class="kpi kpi-link" href="{{ url_for('admin.messages') }}"><span>Open messages</span><b>{{ stats.messages }}</b><small>from the Help page</small></a>
+</div>
+<div class="admin-grid">
+  <section class="panel">
+    <div class="row-head"><h2>Daily revenue</h2><span class="faint">RWF</span></div>
+    {% set peak = daily.values()|max or 1 %}
+    <div class="bars" role="img" aria-label="Bar chart of daily revenue for the last 30 days, peak {{ peak|money }}">
+      {% for day, amount in daily.items() %}<div style="height:{{ (100 * amount / peak)|round(1) }}%" data-tip="{{ day[5:] }} · {{ "{:,}".format(amount) }}"></div>{% endfor %}
+    </div>
+    <div class="axis"><span>{{ daily.keys()|first }}</span><span>today</span></div>
+  </section>
+  <section class="panel">
+    <h2>Revenue mix</h2>
+    {% set s = by_kind.get('subscription').total if by_kind.get('subscription') else 0 %}
+    {% set r = by_kind.get('rent').total if by_kind.get('rent') else 0 %}
+    {% set b = by_kind.get('buy').total if by_kind.get('buy') else 0 %}
+    {% set o = by_kind.get('order').total if by_kind.get('order') else 0 %}
+    {% set tot = (s + r + b + o) or 1 %}
+    <div class="donut" data-label="{{ (100 * (r + b + o) / tot)|int }}% pay-per-view" style="background:conic-gradient(var(--gold) 0 {{ 100 * s / tot }}%, var(--clay) 0 {{ 100 * (s + r) / tot }}%, var(--leaf) 0 {{ 100 * (s + r + b) / tot }}%, var(--sky) 0)"></div>
+    <div class="legend">
+      <span><i style="background:var(--gold)"></i>Subscriptions · {{ s|money }}</span>
+      <span><i style="background:var(--clay)"></i>Rentals · {{ r|money }}</span>
+      <span><i style="background:var(--leaf)"></i>Purchases · {{ b|money }}</span>
+      <span><i style="background:var(--sky)"></i>Cart orders · {{ o|money }}</span>
+    </div>
+  </section>
+</div>
+<div class="admin-grid">
+  <section class="panel">
+    <div class="row-head"><h2>Most watched</h2><a href="{{ url_for('admin.movie_list') }}">All films</a></div>
+    <div class="table-scroll"><table class="tbl"><thead><tr><th>#</th><th>Film</th><th>Country</th><th>Plays</th><th>Earned</th></tr></thead><tbody>
+    {% for m in top %}<tr><td>{{ loop.index }}</td><td><a href="{{ url_for('main.detail', slug=m.slug) }}"><b>{{ m.title }}</b></a></td><td>{{ m.country }}</td><td>{{ "{:,}".format(m.views) }}</td><td>{{ m.earned|money }}</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+  <section class="panel">
+    <h2>Payment methods</h2>
+    {% set mtot = methods|sum(attribute='total') or 1 %}
+    {% for m in methods %}
+    <div class="hbar"><span>{{ {'mtn':'MTN MoMo','airtel':'Airtel Money','card':'Card'}[m.method] }}</span><span class="track"><i style="width:{{ 100 * m.total / mtot }}%;background:{{ {'mtn':'#ffcb05','airtel':'#e40000','card':'#4250c8'}[m.method] }}"></i></span><b>{{ (100 * m.total / mtot)|int }}%</b></div>
+    {% endfor %}
+    <h2 style="margin-top:22px">Plays by country</h2>
+    {% set cmax = countries[0].v if countries else 1 %}
+    {% for c in countries[:6] %}
+    <div class="hbar"><span>{{ c.country }}</span><span class="track"><i style="width:{{ 100 * c.v / cmax }}%;background:var(--gold)"></i></span><b>{{ "{:,}".format(c.v) }}</b></div>
+    {% endfor %}
+  </section>
+</div>
+<section class="panel" style="margin-bottom:18px">
+  <div class="row-head"><h2>Orders needing attention</h2><a href="{{ url_for('admin.orders') }}">All orders</a></div>
+  {% with orders = recent_orders %}{% include "admin/_orders_table.html" %}{% endwith %}
+</section>
+<section class="panel">
+  <div class="row-head"><h2>Latest payments</h2><a href="{{ url_for('admin.transactions') }}">See all</a></div>
+  {% include "admin/_tx_table.html" %}
+</section>
+{% endblock %}

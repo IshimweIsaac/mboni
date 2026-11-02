@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page">
+  {% set ep = request.endpoint %}
+  <nav class="admin-nav" aria-label="Admin">
+    <a href="{{ url_for('admin.dashboard') }}" {% if ep == 'admin.dashboard' %}aria-current="page"{% endif %}>Dashboard</a>
+    <a href="{{ url_for('admin.movie_list') }}" {% if ep in ('admin.movie_list', 'admin.movie_edit') %}aria-current="page"{% endif %}>Films</a>
+    <a href="{{ url_for('admin.customers') }}" {% if ep == 'admin.customers' %}aria-current="page"{% endif %}>Customers</a>
+    <a href="{{ url_for('admin.orders') }}" {% if ep in ('admin.orders', 'admin.order_detail') %}aria-current="page"{% endif %}>Orders</a>
+    <a href="{{ url_for('admin.messages') }}" {% if ep == 'admin.messages' %}aria-current="page"{% endif %}>Messages</a>
+    <a href="{{ url_for('admin.users') }}" {% if ep == 'admin.users' %}aria-current="page"{% endif %}>Members</a>
+    <a href="{{ url_for('admin.transactions') }}" {% if ep == 'admin.transactions' %}aria-current="page"{% endif %}>Payments</a>
+    <a href="{{ url_for('main.browse') }}">View site ↗</a>
+  </nav>
+  {% block admin %}{% endblock %}
+  <div class="spacer"></div>
+</div>
+{% endblock %}

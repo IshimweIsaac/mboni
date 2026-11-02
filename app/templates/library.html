@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ t('library') }} · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>{{ t('library') }}</h1><p class="muted" style="margin:6px 0 0">Everything you've rented, bought and downloaded.</p></div>
+    {% if sub %}<span class="tag tag-leaf">{{ sub.plan_name }} plan · renews {{ sub.expires_at[:10] }}</span>{% else %}<a class="btn btn-gold btn-sm" href="{{ url_for('billing.plans') }}">{{ ui.icon('crown') }} Get a plan</a>{% endif %}
+  </div>
+  <div class="stat-row">
+    <div class="stat"><b>{{ rentals|length }}</b><span>Active rentals</span></div>
+    <div class="stat"><b>{{ owned|length }}</b><span>Films owned</span></div>
+    <div class="stat"><b>{{ downloads|length }}{% if sub %}<small class="faint" style="font-size:.9rem">/{{ sub.downloads }}</small>{% endif %}</b><span>Downloads</span></div>
+    <div class="stat"><b>{{ watched_minutes }}<small class="faint" style="font-size:.9rem"> min</small></b><span>Watched on this profile</span></div>
+  </div>
+
+  <div class="lib-tabs" role="tablist" data-tabs>
+    <button role="tab" aria-selected="true" aria-controls="tab-rentals" id="t-rentals">Rentals ({{ rentals|length }})</button>
+    <button role="tab" aria-selected="false" aria-controls="tab-owned" id="t-owned">Owned ({{ owned|length }})</button>
+    <button role="tab" aria-selected="false" aria-controls="tab-downloads" id="t-downloads">{{ t('downloads') }} ({{ downloads|length }})</button>
+    <button role="tab" aria-selected="false" aria-controls="tab-history" id="t-history">History ({{ history|length }})</button>
+  </div>
+
+  <div role="tabpanel" id="tab-rentals" aria-labelledby="t-rentals">
+    {% for m in rentals %}
+    <div class="list-item">{{ ui.art(m, badges=False) }}<div><b>{{ m.title }}</b><div class="row-gap" style="margin-top:6px"><span class="pill-time {{ 'ok' if hours_left(m.expires_at) > 12 }}" data-countdown="{{ m.expires_at }}">{{ ui.icon('clock')|safe }} {{ hours_left(m.expires_at) }}h left</span><span class="faint" style="font-size:.82rem">until {{ m.expires_at[:16] }}</span></div></div>
+      <div class="row-gap"><a class="btn btn-gold btn-sm" href="{{ url_for('main.watch', slug=m.slug) }}">{{ ui.icon('play') }} {{ t('watch') }}</a><a class="btn btn-sm" href="{{ url_for('billing.checkout', kind='buy', movie=m.slug) }}">Buy to keep</a></div></div>
+    {% else %}<div class="empty">{{ ui.icon('clock') }}<h2>No active rentals</h2><p class="muted">Rent any film for 48 hours from 800 RWF.</p><a class="btn btn-gold" href="{{ url_for('main.search', access='premiere') }}">See premieres</a></div>{% endfor %}
+  </div>
+  <div role="tabpanel" id="tab-owned" aria-labelledby="t-owned" hidden>
+    {% for m in owned %}
+    <div class="list-item">{{ ui.art(m, badges=False) }}<div><b>{{ m.title }}</b><div class="faint" style="font-size:.85rem">Bought {{ m.bought_at[:10] }}</div></div><a class="btn btn-gold btn-sm" href="{{ url_for('main.watch', slug=m.slug) }}">{{ ui.icon('play') }} {{ t('watch') }}</a></div>
+    {% else %}<div class="empty">{{ ui.icon('key') }}<h2>You don't own any films yet</h2><p class="muted">Buy a film once and keep it forever, with offline downloads.</p></div>{% endfor %}
+  </div>
+  <div role="tabpanel" id="tab-downloads" aria-labelledby="t-downloads" hidden>
+    {% for m in downloads %}
+    <div class="list-item" data-download-row="{{ m.slug }}">{{ ui.art(m, badges=False) }}<div><b>{{ m.title }}</b><div class="faint" style="font-size:.85rem">{{ m.quality }} · saved {{ m.saved_at[:10] }} · <span data-offline-state="{{ m.slug }}">checking…</span></div></div>
+      <div class="row-gap"><a class="btn btn-gold btn-sm" href="{{ url_for('main.watch', slug=m.slug) }}">{{ ui.icon('play') }} Play</a><button class="btn btn-sm btn-danger" type="button" data-download="{{ m.slug }}" data-downloaded="true" data-remove-row>{{ ui.icon('trash') }} <span>Remove</span></button></div></div>
+    {% else %}<div class="empty">{{ ui.icon('download') }}<h2>No downloads</h2><p class="muted">Download films on Wi-Fi from their page and watch them without data.</p></div>{% endfor %}
+  </div>
+  <div role="tabpanel" id="tab-history" aria-labelledby="t-history" hidden>
+    {% for m in history %}
+    <div class="list-item">{{ ui.art(m, badges=False) }}<div><b>{{ m.title }}</b><div class="pw-meter" style="margin:8px 0 4px;max-width:260px"><i style="width:{{ (100 * m.position / m.duration)|int }}%;background:var(--gold)"></i></div><span class="faint" style="font-size:.82rem">{{ (100 * m.position / m.duration)|int }}% · {{ m.updated_at[:16] }}</span></div><a class="btn btn-sm" href="{{ url_for('main.watch', slug=m.slug) }}">{{ t('resume') }}</a></div>
+    {% else %}<div class="empty">{{ ui.icon('film') }}<h2>Nothing watched yet</h2></div>{% endfor %}
+  </div>
+  <div class="spacer"></div>
+</div>
+{% endblock %}

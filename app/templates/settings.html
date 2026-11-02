@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ t('settings') }} · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>{{ t('account') }}</h1><p class="muted" style="margin:6px 0 0">{{ g.user.name }} · {{ g.user.email }}</p></div>
+    <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf" value="{{ csrf_token }}"><button class="btn btn-sm">{{ ui.icon('logout') }} {{ t('sign_out') }}</button></form>
+  </div>
+
+  <div class="settings-grid">
+    <section class="panel">
+      <h2>Membership</h2>
+      {% if sub %}
+        <div class="status-box" style="margin-top:14px">
+          <div class="row-gap" style="justify-content:space-between"><b style="font-size:1.1rem">{{ sub.plan_name }} plan</b><span class="tag tag-leaf">Active</span></div>
+          <p style="margin:8px 0 0" class="muted">{{ sub.price|money }} / month · {{ sub.quality }} · {{ sub.downloads }} downloads<br>
+          {% if sub.auto_renew %}Renews on <b>{{ sub.expires_at[:10] }}</b> via mobile money.{% else %}<b>Ends on {{ sub.expires_at[:10] }}.</b> Auto-renew is off.{% endif %}</p>
+        </div>
+        <div class="row-gap" style="margin-top:14px">
+          <a class="btn btn-sm" href="{{ url_for('billing.plans') }}">Change plan</a>
+          <a class="btn btn-sm" href="{{ url_for('billing.checkout', kind='subscription', plan=sub.plan_code) }}">Pay next month early</a>
+          {% if sub.auto_renew %}
+          <form method="post" action="{{ url_for('billing.cancel') }}" data-confirm="Turn off auto-renew? You keep access until {{ sub.expires_at[:10] }}."><input type="hidden" name="csrf" value="{{ csrf_token }}"><button class="btn btn-sm btn-danger">Cancel subscription</button></form>
+          {% else %}
+          <form method="post" action="{{ url_for('billing.resume') }}"><input type="hidden" name="csrf" value="{{ csrf_token }}"><button class="btn btn-sm btn-gold">Turn auto-renew back on</button></form>
+          {% endif %}
+        </div>
+      {% else %}
+        <p class="muted" style="margin-top:12px">No active plan. You can still rent or buy single films, and watch free titles.</p>
+        <a class="btn btn-gold" href="{{ url_for('billing.plans') }}">{{ ui.icon('crown') }} See plans</a>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Preferences</h2>
+      <form method="post" id="prefs-form">
+        <input type="hidden" name="csrf" value="{{ csrf_token }}">
+        <div class="setting"><div><b>{{ t('data_saver') }}</b><p>Play in 240p (~180 MB/h) and stop autoplaying previews.</p></div><span class="switch"><input type="checkbox" name="data_saver" aria-label="{{ t('data_saver') }}" {% if g.user.data_saver %}checked{% endif %}><span></span></span></div>
+        <div class="setting"><div><label for="lang-sel"><b>{{ t('language') }}</b></label><p>App and default subtitles.</p></div>
+          <select class="input" id="lang-sel" name="lang" style="width:auto;min-height:42px">{% for code, name in LANGS.items() %}<option value="{{ code }}" {% if code == lang %}selected{% endif %}>{{ name }}</option>{% endfor %}</select></div>
+        <div class="setting"><div><label for="phone"><b>Mobile money number</b></label><p>Pre-filled at checkout.</p></div><input class="input" id="phone" name="phone" inputmode="tel" value="{{ g.user.phone or '' }}" placeholder="0788123456" style="width:170px;min-height:42px"></div>
+        <button class="btn btn-gold btn-sm" style="margin-top:12px">Save preferences</button>
+      </form>
+      <h3 style="margin-top:24px">Display <span class="faint" style="font-weight:500;font-size:.8rem">(this device)</span></h3>
+      <div class="setting"><div><b>Theme</b></div><div class="seg" data-pref="theme"><button type="button" data-v="">Dark</button><button type="button" data-v="light">Light</button></div></div>
+      <div class="setting"><div><b>High contrast text</b><p>Brighter secondary text for sunlight or low vision.</p></div><div class="seg" data-pref="contrast"><button type="button" data-v="">Off</button><button type="button" data-v="high">On</button></div></div>
+      <div class="setting"><div><b>Reduce motion</b><p>Turn off animations and moving backgrounds.</p></div><div class="seg" data-pref="motion"><button type="button" data-v="">Off</button><button type="button" data-v="reduce">On</button></div></div>
+      <div class="setting install-card" id="install-card"><div><b>Install Mboni</b><p>Add to your home screen like a normal app.</p></div><button class="btn btn-sm btn-gold" type="button" data-install>{{ ui.icon('download') }} Install</button></div>
+    </section>
+
+    <section class="panel" style="grid-column:1/-1">
+      <div class="row-head"><h2>Payment history</h2><a href="{{ url_for('main.profiles') }}">Manage profiles</a></div>
+      {% if transactions %}
+      <div class="table-scroll"><table class="tbl">
+        <thead><tr><th>Date</th><th>Item</th><th>Method</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+        <tbody>{% for tx in transactions %}<tr>
+          <td>{{ tx.created_at[:10] }}</td><td>{% if tx.kind == 'order' %}Cart order{% else %}{{ tx.title or (tx.plan_code|capitalize ~ ' plan') }}{% endif %} <span class="faint">· {{ tx.kind }}</span></td>
+          <td>{{ {'mtn':'MTN MoMo','airtel':'Airtel Money','card':'Card'}[tx.method] }} <span class="faint">{{ tx.account }}</span></td>
+          <td><b>{{ tx.amount|money }}</b></td><td><span class="status {{ tx.status }}">{{ tx.status }}</span></td>
+          <td><a class="gold" href="{{ url_for('billing.receipt', ref=tx.ref) }}">Receipt</a></td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}<p class="muted">No payments yet.</p>{% endif %}
+    </section>
+  </div>
+  <div class="spacer"></div>
+</div>
+{% endblock %}

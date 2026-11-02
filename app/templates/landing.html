@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block main %}
+<section class="hero landing-hero">
+  <video class="hero-video" src="{{ url_for('static', filename='media/feature-240.mp4') }}" autoplay muted loop playsinline preload="none" aria-hidden="true" data-saver-hide></video>
+  <div class="poster-wall" aria-hidden="true">
+    {% for col in range(4) %}
+    <div class="col">
+      {% for m in (popular[col * 3:col * 3 + 3] + popular[col * 3:col * 3 + 3]) %}{{ ui.art(m) }}{% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="wrap">
+    <div class="hero-content reveal-up">
+      <span class="eyebrow">{{ ui.icon('spark') }} 15 countries · 24 films · 1 continent</span>
+      <h1>See Africa. <em>One tap away.</em></h1>
+      <p class="tagline">Subscribe from 3,000 RWF a month, or rent a single film from 800 RWF. Pay with MTN MoMo or Airtel Money. No card needed.</p>
+      <form class="join-form" action="{{ url_for('auth.register') }}" method="get">
+        <label class="sr-only" for="join-email">Email address</label>
+        <input class="input" id="join-email" type="email" name="email" placeholder="Your email address" autocomplete="email">
+        <button class="btn btn-gold" type="submit">Start watching {{ ui.icon('next') }}</button>
+      </form>
+      <p class="trust-line">{{ ui.icon('star') }} <b>{{ trust.rating }}/5</b> from {{ trust.reviews }} reviews · {{ trust.members }}+ viewers in Rwanda and abroad · {{ ui.icon('shield') }} Secure MoMo checkout</p>
+      <p class="muted" style="margin-top:14px;font-size:.9rem"><span class="inline-ic">{{ ui.icon('leaf') }}</span> <a href="{{ url_for('main.detail', slug='nyungwe') }}" style="text-decoration:underline">Nyungwe</a> is free to watch, no account needed.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap row">
+  <div class="row-head"><h2>Popular on Mboni this week</h2><a href="{{ url_for('main.search') }}">See all</a></div>
+  {{ ui.rail(popular) }}
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-title"><h2>Watch your way.</h2><p class="muted">Not everyone wants a subscription. Choose what fits your wallet this month.</p></div>
+    <div class="ways">
+      <div class="way"><div class="icon">{{ ui.icon('crown') }}</div><div class="big">from 3,000</div><h3>Subscribe</h3><p class="muted">Unlimited catalogue, profiles for the whole family, downloads for the bus ride. Cancel any time in two taps.</p></div>
+      <div class="way"><div class="icon">{{ ui.icon('clock') }}</div><div class="big">from 800</div><h3>Rent for 48 hours</h3><p class="muted">Just want tonight's premiere? Rent it, pay with MoMo, start watching in under a minute.</p></div>
+      <div class="way"><div class="icon">{{ ui.icon('key') }}</div><div class="big">from 3,500</div><h3>Buy &amp; keep</h3><p class="muted">Own the films you love forever, download them in data-saver quality and watch offline.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="section-title"><h2>{{ t('explore_africa') }}</h2><p class="muted">Kigali to Lagos, Dakar to Cairo. Pick a country and start there.</p></div>
+  <div class="country-grid">
+    {% for c in countries %}
+    <a class="country" href="{{ url_for('main.search', country=c) }}"><b>{{ c }}</b><span class="faint">Explore films</span><span class="cc" aria-hidden="true">{{ COUNTRY_CODES.get(c, c[:2]|upper) }}</span></a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-title"><h2>Built for how Africa watches.</h2></div>
+    <div class="feature-grid">
+      <div class="feature">{{ ui.icon('gauge') }}<h3>Data saver mode</h3><p>Stream at 240p using about 180 MB an hour. We always show you how much data a film will use before you press play.</p></div>
+      <div class="feature">{{ ui.icon('phone') }}<h3>Mobile money first</h3><p>MTN MoMo and Airtel Money checkout with a USSD-style approval. Cards work too.</p></div>
+      <div class="feature">{{ ui.icon('download') }}<h3>Offline downloads</h3><p>Download on Wi-Fi, watch on the moto or in the village. Install Mboni as an app straight from your browser.</p></div>
+      <div class="feature">{{ ui.icon('globe') }}<h3>Kinyarwanda, French, English</h3><p>Switch the whole app and subtitles to the language you think in.</p></div>
+      <div class="feature">{{ ui.icon('users') }}<h3>Family profiles</h3><p>Up to five profiles, with a Kids profile that only shows age-appropriate films.</p></div>
+      <div class="feature">{{ ui.icon('award') }}<h3>Filmmakers get paid</h3><p>60% of every rental and purchase goes directly to the people who made the film.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="section-title"><h2>Simple plans. Real prices.</h2><p class="muted">Every plan includes every film except new premieres, which subscribers rent at 20% off.</p></div>
+  {% include "billing/_plan_cards.html" %}
+  <div class="pay-logos" style="margin-top:30px">
+    <span class="pay-logo"><i style="background:#ffcb05"></i>MTN MoMo</span>
+    <span class="pay-logo"><i style="background:#e40000"></i>Airtel Money</span>
+    <span class="pay-logo"><i style="background:#4250c8"></i>Visa / Mastercard</span>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap faq" style="max-width:820px">
+    <div class="section-title"><h2>Questions</h2></div>
+    <details><summary>What is the difference between renting and buying?</summary><p>A rental gives you 48 hours to watch from the moment you pay. Buying keeps the film in your Library forever and lets you download it for offline viewing.</p></details>
+    <details><summary>How do I pay with mobile money?</summary><p>Choose MTN MoMo or Airtel Money at checkout and enter your number. You'll get a prompt on your phone; approve it with your PIN and the film unlocks instantly.</p></details>
+    <details><summary>How much data does a film use?</summary><p>About 180 MB per hour in Data saver (240p) and 450 MB per hour in Standard (480p). Each film page shows the estimate for its runtime.</p></details>
+    <details><summary>Can I cancel my subscription?</summary><p>Yes, any time from Settings. You keep access until the end of the 30 days you paid for. No hidden fees.</p></details>
+    <details><summary>Is there anything for children?</summary><p>Yes. Create a Kids profile and it will only show family and animated films like Anansi and the Sky Box and Imigongo.</p></details>
+  </div>
+</section>
+{% endblock %}

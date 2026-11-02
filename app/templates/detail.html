@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ movie.title }} ({{ movie.year }}) · Mboni{% endblock %}
+{% block main %}
+<section class="detail-hero">
+  {{ ui.art(movie, badges=False, show_title=False) }}
+  <div class="wrap">
+    <div class="detail-grid">
+      {{ ui.art(movie) }}
+      <div class="reveal-up">
+        <div class="row-gap">
+          {% if movie.access == 'premiere' %}<span class="tag tag-gold">Premiere</span>{% elif movie.access == 'free' %}<span class="tag tag-leaf">Free to watch</span>{% else %}<span class="tag">Included in plans</span>{% endif %}
+          {% if movie.award %}<span class="award">{{ ui.icon('award') }} {{ movie.award }}</span>{% endif %}
+        </div>
+        <h1>{{ movie.title }}</h1>
+        <p class="tagline" style="font-size:1.15rem;font-weight:600;color:rgba(255,255,255,.88)">{{ movie.tagline }}</p>
+        <div class="meta" style="color:rgba(255,255,255,.78)">
+          <span>{{ movie.year }}</span><span class="dot">{{ movie.runtime|runtime }}</span><span class="dot"><span class="tag" style="background:rgba(255,255,255,.15);color:#fff">{{ movie.age }}</span></span>
+          <span class="dot">{{ movie.country }}</span><span class="dot">{{ movie.genres.replace(',', ' · ') }}</span>
+          {% if movie.score %}<span class="dot">{{ ui.stars(movie.score) }} {{ movie.score }} ({{ movie.review_count }})</span>{% endif %}
+        </div>
+        {% if proof.week > 1 %}<p class="proof">{{ ui.icon('users') }} {{ proof.week }} people looked at this film this week{% if proof.top_age %} · most popular with viewers aged {{ proof.top_age }}{% endif %}</p>{% endif %}
+        <div class="hero-actions">
+          {% if access.can_watch %}
+            <a class="btn btn-light" href="{{ url_for('main.watch', slug=movie.slug) }}">{{ ui.icon('play') }} {{ t('resume') if progress else t('watch_now') }}</a>
+          {% elif not movie.available %}
+            <a class="btn btn-gold" href="#watch-options">{{ ui.icon('clock') }} Coming soon</a>
+          {% else %}
+            <a class="btn btn-gold" href="#watch-options">{{ ui.icon('ticket') }} {{ t('rent') }} {{ access.rent_price|money }}</a>
+            <button class="btn btn-glass" type="button" data-cart-add="{{ movie.slug }}" data-kind="buy">{{ ui.icon('cart') }} Add to cart</button>
+          {% endif %}
+          <a class="btn btn-glass" href="{{ url_for('main.watch', slug=movie.slug, trailer=1) }}">{{ ui.icon('film') }} {{ t('trailer') }}</a>
+          {% if g.profile %}
+          <button class="btn btn-glass" type="button" data-watchlist="{{ movie.slug }}" data-label aria-pressed="{{ 'true' if in_list else 'false' }}">{{ ui.icon('check' if in_list else 'plus') }} <span>{{ t('add_list') }}</span></button>
+          {% endif %}
+          <button class="btn btn-glass icon-btn" type="button" data-share="{{ movie.title }}" aria-label="Share">{{ ui.icon('share') }}</button>
+        </div>
+        {% if progress %}<div style="max-width:420px;margin-top:16px"><div class="pw-meter"><i style="width:{{ progress }}%;background:var(--gold)"></i></div><span style="font-size:.82rem;color:rgba(255,255,255,.7)">{{ progress }}% watched</span></div>{% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap detail-body" style="margin-top:20px">
+  <div class="stack">
+    <section>
+      <h2 style="margin-bottom:12px">Story</h2>
+      <p style="font-size:1.05rem;max-width:68ch">{{ movie.synopsis }}</p>
+      {% if movie.critic_quote %}<blockquote class="critic"><p>“{{ movie.critic_quote }}”</p><cite>{{ ui.icon('award') }} {{ movie.critic_name }}</cite></blockquote>{% endif %}
+      <dl class="facts">
+        <dt>Director</dt><dd>{{ movie.director }}</dd>
+        <dt>Starring</dt><dd>{{ movie.cast_list }}</dd>
+        <dt>Language</dt><dd>{{ movie.language }}</dd>
+        <dt>Subtitles</dt><dd>English, Kinyarwanda, Français</dd>
+        <dt>Availability</dt><dd>{% if not movie.available %}<span class="status pending">Coming soon</span> · add it to My List to hear first{% elif movie.access == 'free' %}<span class="status paid">Available</span> · free for everyone{% else %}<span class="status paid">Available now</span> · instant digital delivery, streams worldwide{% endif %}</dd>
+        {% if movie.access != 'free' %}<dt>Price</dt><dd>Rent {{ access.rent_price|money }} · Buy {{ access.buy_price|money }}{% if movie.access == 'sub' %} · or included in every plan{% endif %}</dd>{% endif %}
+        <dt>Country</dt><dd><a class="gold" href="{{ url_for('main.search', country=movie.country) }}">{{ movie.country }}</a></dd>
+        {% set cover = COVERS.get(movie.slug) %}{% if cover %}<dt>Cover photo</dt><dd class="faint">{{ cover.author }} · <a href="{{ cover.source }}" target="_blank" rel="noopener" style="text-decoration:underline">{{ cover.license }}</a>, Wikimedia Commons</dd>{% endif %}
+      </dl>
+    </section>
+
+    <section id="reviews" style="padding-top:20px">
+      <div class="row-head"><h2>Reviews</h2>{% if movie.score %}<span class="muted">{{ movie.score }} / 5 from {{ movie.review_count }}</span>{% endif %}</div>
+      <div class="panel panel-tight" style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center">
+        <div style="text-align:center"><div class="display" style="font-size:2.8rem;font-weight:800">{{ movie.score or '–' }}</div>{{ ui.stars(movie.score or 0) }}</div>
+        <div class="rating-bars">
+          {% set total = stars.values()|sum or 1 %}
+          {% for s, c in stars.items() %}<div><span>{{ s }}★</span><span class="track"><i style="width:{{ (100 * c / total)|int }}%"></i></span><span>{{ c }}</span></div>{% endfor %}
+        </div>
+      </div>
+      {% if g.user %}
+      <form class="panel panel-tight stack" style="margin-top:14px" method="post" action="{{ url_for('main.review', slug=movie.slug) }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token }}">
+        <fieldset style="border:0;padding:0;margin:0">
+          <legend style="font-weight:700;margin-bottom:6px">{{ 'Update your review' if my_review else 'Rate this film' }}</legend>
+          <div class="star-input">
+            {% for s in range(5, 0, -1) %}<input type="radio" id="star{{ s }}" name="stars" value="{{ s }}" {% if my_review and my_review.stars == s %}checked{% endif %} required><label for="star{{ s }}" title="{{ s }} star{{ 's' if s > 1 }}"><span class="sr-only">{{ s }} stars</span>★</label>{% endfor %}
+          </div>
+        </fieldset>
+        <label class="sr-only" for="review-body">Your review</label>
+        <textarea class="input" id="review-body" name="body" maxlength="600" placeholder="What did you think? (optional)">{{ my_review.body if my_review }}</textarea>
+        <button class="btn btn-gold btn-sm" style="justify-self:start">Post review</button>
+      </form>
+      {% endif %}
+      {% for r in reviews %}
+      <article class="review">
+        <header><span class="avatar" style="background:hsl({{ (r.user_id * 47) % 360 }} 60% 45%);width:32px;height:32px;font-size:.8rem">{{ r.name[0] }}</span><b>{{ r.name }}</b>{% if r.user_id in verified %}<span class="verified" title="Rented, bought or subscribed before reviewing">{{ ui.icon('check') }} Verified viewer</span>{% endif %}{{ ui.stars(r.stars) }}<span class="faint" style="font-size:.8rem;margin-left:auto">{{ r.created_at[:10] }}</span></header>
+        {% if r.body %}<p style="margin:0">{{ r.body }}</p>{% endif %}
+      </article>
+      {% endfor %}
+    </section>
+  </div>
+
+  <aside class="stack" id="watch-options">
+    <div class="panel">
+      <h2 style="margin-bottom:14px">How to watch</h2>
+      {% if access.can_watch %}
+        <div class="status-box">
+          {% if access.reason == 'rented' %}
+            <b>Rented.</b> Time left to watch:
+            <div class="countdown" data-countdown="{{ access.rental.expires_at }}">{{ access.hours_left }}h</div>
+          {% elif access.reason == 'owned' %}<b><span class="ic16">{{ ui.icon('key') }}</span> You own this film.</b> It's in your Library forever.
+          {% elif access.reason == 'subscription' %}<b>{{ t('included') }}.</b> Enjoy!
+          {% elif access.reason == 'free' %}<b>Free for everyone.</b> No account needed.
+          {% else %}<b>Admin preview.</b>{% endif %}
+        </div>
+        <a class="btn btn-gold btn-block" style="margin-top:14px" href="{{ url_for('main.watch', slug=movie.slug) }}">{{ ui.icon('play') }} {{ t('resume') if progress else t('watch_now') }}</a>
+        {% if g.profile and access.reason in ('owned', 'subscription', 'free', 'admin') %}
+        <button class="btn btn-block" style="margin-top:10px" type="button" data-download="{{ movie.slug }}" data-downloaded="{{ 'true' if downloaded else 'false' }}">{{ ui.icon('check' if downloaded else 'download') }} <span>{{ 'Downloaded · remove' if downloaded else 'Download for offline' }}</span></button>
+        {% endif %}
+        {% if movie.access != 'free' and movie.available and access.reason != 'admin' %}
+        <button class="btn btn-ghost btn-block" style="margin-top:10px" type="button" data-cart-add="{{ movie.slug }}" data-kind="buy">{{ ui.icon('gift') }} Buy a copy as a gift</button>
+        {% endif %}
+        {% if access.reason == 'rented' %}
+        <a class="offer" style="margin-top:12px" href="{{ url_for('billing.checkout', kind='buy', movie=movie.slug) }}"><span class="ic">{{ ui.icon('key') }}</span><span><b>Keep it forever</b><span class="faint" style="font-size:.85rem">Buy and download</span></span><span class="amt">{{ access.buy_price|money }}</span></a>
+        {% endif %}
+      {% elif not movie.available %}
+        <div class="status-box" style="background:color-mix(in srgb,var(--gold) 12%,var(--surface));border-color:color-mix(in srgb,var(--gold) 40%,transparent)"><b>Coming soon.</b> This premiere isn't out yet. Watch the trailer and add it to My List.</div>
+        <p class="hint" style="margin-top:10px">Expected price: rent {{ access.rent_price|money }} · buy {{ access.buy_price|money }}</p>
+      {% else %}
+        <div class="offers">
+          {% if not access.subscribed and movie.access == 'sub' %}
+          <a class="offer" href="{{ url_for('billing.plans') }}"><span class="ic">{{ ui.icon('crown') }}</span><span><b>{{ t('subscribe') }}</b><span class="faint" style="font-size:.85rem">This + every film in the catalogue</span></span><span class="amt">3,000<s>RWF / month</s></span></a>
+          {% endif %}
+          <a class="offer" href="{{ url_for('billing.checkout', kind='rent', movie=movie.slug) }}"><span class="ic">{{ ui.icon('clock') }}</span><span><b>{{ t('rent') }} for 48 hours</b><span class="faint" style="font-size:.85rem">Stream in HD on any device</span></span><span class="amt">{{ access.rent_price|money }}{% if access.discount %}<s>{{ movie.rent_price|money }}</s>{% endif %}</span></a>
+          <a class="offer" href="{{ url_for('billing.checkout', kind='buy', movie=movie.slug) }}"><span class="ic">{{ ui.icon('key') }}</span><span><b>{{ t('buy') }} &amp; keep</b><span class="faint" style="font-size:.85rem">Yours forever, download offline</span></span><span class="amt">{{ access.buy_price|money }}{% if access.discount %}<s>{{ movie.buy_price|money }}</s>{% endif %}</span></a>
+        </div>
+        <div class="cart-adds">
+          <button class="btn btn-sm" type="button" data-cart-add="{{ movie.slug }}" data-kind="rent">{{ ui.icon('cart') }} Add rental to cart</button>
+          <button class="btn btn-sm" type="button" data-cart-add="{{ movie.slug }}" data-kind="buy">{{ ui.icon('cart') }} Add purchase to cart</button>
+        </div>
+        {% if access.discount %}<p class="hint" style="margin-top:10px"><span class="ic16 gold">{{ ui.icon('spark') }}</span> Subscriber price: {{ access.discount }}% off this premiere.</p>{% endif %}
+        {% if movie.access == 'premiere' and not access.subscribed %}<p class="hint" style="margin-top:10px">New premieres are pay-per-view. Subscribers get 20% off.</p>{% endif %}
+      {% endif %}
+    </div>
+    {% include "partials/trust.html" %}
+    <div class="data-note">{{ ui.icon('gauge') }}<span><b>Data estimate for {{ movie.runtime|runtime }}:</b><br>Data saver ≈ {{ (qualities['240p'].mb_per_hour * movie.runtime / 60)|int }} MB · Standard ≈ {{ (qualities['480p'].mb_per_hour * movie.runtime / 60)|int }} MB</span></div>
+  </aside>
+</div>
+
+{% if similar %}
+<section class="wrap row">
+  <div class="row-head"><h2>More like this</h2></div>
+  {{ ui.rail(similar) }}
+</section>
+{% endif %}
+<div class="spacer"></div>
+{% endblock %}

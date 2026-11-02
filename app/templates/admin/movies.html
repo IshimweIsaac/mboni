@@ -1,0 +1,20 @@
+{% extends "admin/_base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Films · Admin · Mboni{% endblock %}
+{% block admin %}
+<div class="page-head"><div><h1>Films</h1><p class="muted" style="margin:6px 0 0">{{ movies|length }} in the catalogue</p></div><a class="btn btn-sm btn-gold" href="{{ url_for('admin.movie_edit') }}">{{ ui.icon('plus') }} Add film</a></div>
+<section class="panel"><div class="table-scroll"><table class="tbl">
+  <thead><tr><th></th><th>Title</th><th>Country</th><th>Access</th><th>Rent / Buy</th><th>Rating</th><th>Plays</th><th></th></tr></thead>
+  <tbody>{% for m in movies %}<tr>
+    <td style="width:52px"><div style="width:40px">{{ ui.art(m, badges=False, show_title=False) }}</div></td>
+    <td><a href="{{ url_for('main.detail', slug=m.slug) }}"><b>{{ m.title }}</b></a><br><span class="faint" style="font-size:.8rem">{{ m.year }} · {{ m.genres.replace(',', ', ') }}{% if m.featured %} · <span class="gold">featured</span>{% endif %}{% if m.is_kids %} · kids{% endif %}{% if not m.available %} · <span class="status pending">coming soon</span>{% endif %}</span></td>
+    <td>{{ m.country }}</td>
+    <td><span class="tag {{ {'premiere':'tag-gold','free':'tag-leaf'}.get(m.access, '') }}">{{ m.access }}</span></td>
+    <td>{{ "{:,}".format(m.rent_price) }} / {{ "{:,}".format(m.buy_price) }}</td>
+    <td>{{ m.score or '–' }} <span class="faint">({{ m.review_count }})</span></td>
+    <td>{{ "{:,}".format(m.views) }}</td>
+    <td><div class="row-gap" style="flex-wrap:nowrap"><a class="btn btn-sm icon-btn" href="{{ url_for('admin.movie_edit', mid=m.id) }}" aria-label="Edit {{ m.title }}">{{ ui.icon('edit') }}</a>
+      <form method="post" action="{{ url_for('admin.movie_delete', mid=m.id) }}" data-confirm="Delete {{ m.title }}? Reviews, progress and purchases for it will also be removed."><input type="hidden" name="csrf" value="{{ csrf_token }}"><button class="btn btn-sm icon-btn btn-danger" aria-label="Delete {{ m.title }}">{{ ui.icon('trash') }}</button></form></div></td>
+  </tr>{% endfor %}</tbody>
+</table></div></section>
+{% endblock %}

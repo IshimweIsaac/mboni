@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Search · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="page-head">
+    <div><h1>{% if args.get('mood') in moods %}{{ moods[args.mood][0] }}{% elif args.get('country') %}Films from {{ args.country }}{% elif args.get('access') == 'premiere' %}Fresh premieres{% else %}Find your next film{% endif %}</h1>
+    <p class="muted" style="margin:6px 0 0" aria-live="polite">{{ results|length }} film{{ 's' if results|length != 1 }}{% if args.get('q') %} for “{{ args.q }}”{% endif %}</p></div>
+    <a class="btn btn-sm" href="{{ url_for('main.surprise') }}">{{ ui.icon('shuffle') }} {{ t('surprise') }}</a>
+  </div>
+
+  <form method="get" action="{{ url_for('main.search') }}" data-autosubmit>
+    <div class="search-bar"><div class="in">{{ ui.icon('search') }}<input class="input" type="search" name="q" value="{{ args.get('q', '') }}" placeholder="Title, actor, director, country, language…" aria-label="Search"></div></div>
+    <div class="filters">
+      {% for name, label in [('country', 'Any country'), ('genre', 'Any genre'), ('language', 'Any language')] %}
+      <label class="sr-only" for="f-{{ name }}">{{ name|capitalize }}</label>
+      <select class="input" id="f-{{ name }}" name="{{ name }}">
+        <option value="">{{ label }}</option>
+        {% for v in facets[name] %}<option {% if args.get(name) == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+      </select>
+      {% endfor %}
+      <label class="sr-only" for="f-access">How to watch</label>
+      <select class="input" id="f-access" name="access">
+        <option value="">Any way to watch</option>
+        <option value="sub" {% if args.get('access') == 'sub' %}selected{% endif %}>Included in plans</option>
+        <option value="premiere" {% if args.get('access') == 'premiere' %}selected{% endif %}>Premieres (rent / buy)</option>
+        <option value="free" {% if args.get('access') == 'free' %}selected{% endif %}>Free</option>
+      </select>
+      <label class="sr-only" for="f-sort">Sort</label>
+      <select class="input" id="f-sort" name="sort">
+        <option value="">Most popular</option>
+        <option value="new" {% if args.get('sort') == 'new' %}selected{% endif %}>Newest</option>
+        <option value="rating" {% if args.get('sort') == 'rating' %}selected{% endif %}>Highest rated</option>
+        <option value="price" {% if args.get('sort') == 'price' %}selected{% endif %}>Cheapest rental</option>
+      </select>
+    </div>
+    {% if args.get('mood') %}<input type="hidden" name="mood" value="{{ args.mood }}">{% endif %}
+    <noscript><button class="btn btn-gold">Apply filters</button></noscript>
+  </form>
+  <div class="chip-rail" style="margin-bottom:24px">
+    {% for key, (label, genre) in moods.items() %}
+    <a class="chip {{ 'on' if args.get('mood') == key }}" href="{{ url_for('main.search', mood=key) if args.get('mood') != key else url_for('main.search') }}">{{ label }}</a>
+    {% endfor %}
+    {% if args|length %}<a class="chip" href="{{ url_for('main.search') }}">{{ ui.icon('x')|safe }} Clear all</a>{% endif %}
+  </div>
+
+  {% if results %}
+  <div class="grid">
+    {% for m in results %}{{ ui.card(m, progress.get(m.id), m.id in watchlist) }}{% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">{{ ui.icon('film') }}<h2>No films match that yet</h2><p class="muted">Try fewer filters or a different spelling. You can search by actor, country or language too.</p><a class="btn btn-gold" href="{{ url_for('main.search') }}">Show everything</a></div>
+  {% endif %}
+  <div class="spacer"></div>
+</div>
+{% endblock %}

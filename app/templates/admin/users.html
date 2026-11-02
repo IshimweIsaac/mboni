@@ -1,0 +1,13 @@
+{% extends "admin/_base.html" %}
+{% block title %}Members · Admin · Mboni{% endblock %}
+{% block admin %}
+<div class="page-head"><div><h1>Members</h1><p class="muted" style="margin:6px 0 0">{{ users|length }} accounts</p></div></div>
+<section class="panel"><div class="table-scroll"><table class="tbl">
+  <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Plan</th><th>Profiles</th><th>Total spent</th><th>Joined</th></tr></thead>
+  <tbody>{% for u in users %}<tr>
+    <td><b>{{ u.name }}</b></td><td>{{ u.email }}</td><td>{{ u.phone or '–' }}</td>
+    <td>{% if u.role == 'admin' %}<span class="tag tag-gold">admin</span>{% else %}viewer{% endif %}</td>
+    <td>{% if u.plan %}<span class="tag tag-leaf">{{ u.plan }}</span>{% else %}<span class="faint">none</span>{% endif %}</td>
+    <td>{{ u.profiles }}</td><td>{{ u.spent|money }}</td><td>{{ u.created_at[:10] }}</td></tr>{% endfor %}</tbody>
+</table></div></section>
+{% endblock %}

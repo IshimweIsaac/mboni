@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="error-page"><div><div class="big-wifi gold">{{ ui.icon('wifi-off') }}</div><h1 style="margin:20px 0 10px">No connection</h1><p class="muted">Your downloaded films still play. Open your Library to watch them.</p><a class="btn btn-gold" href="/library">Open Library</a></div></div>
+{% endblock %}

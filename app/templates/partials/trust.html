@@ -1,0 +1,7 @@
+{% import "partials/macros.html" as ui with context %}
+<ul class="trust" aria-label="Why you can buy with confidence">
+  <li>{{ ui.icon('shield') }}<span><b>Secure payment</b>MoMo PIN on your own phone; card numbers are never stored</span></li>
+  <li>{{ ui.icon('check') }}<span><b>Refund if it won't play</b>Tell us within 48 hours and we refund to your wallet</span></li>
+  <li>{{ ui.icon('star') }}<span><b>Real reviews</b>“Verified viewer” means they paid before reviewing</span></li>
+  <li>{{ ui.icon('chat') }}<span><b>People in Kigali</b><a class="gold" href="{{ url_for('shop.contact') }}">Help centre</a> replies within a day</span></li>
+</ul>

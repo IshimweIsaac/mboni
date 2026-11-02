@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}My orders · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page" style="max-width:980px">
+  <div class="page-head"><div><h1>My orders</h1><p class="muted" style="margin:6px 0 0">Every cart you've checked out, with its status and gift codes.</p></div>
+    <a class="btn btn-sm" href="{{ url_for('shop.cart') }}">{{ ui.icon('cart') }} Cart ({{ cart_count() }})</a></div>
+  {% for o in orders %}
+  <a class="order-row panel panel-tight" href="{{ url_for('shop.order', ref=o.ref) }}">
+    <div><b>{{ o.ref }}</b><span class="faint">{{ o.created_at[:16] }} · {{ o.copies }} cop{{ 'y' if o.copies == 1 else 'ies' }}</span></div>
+    <div class="titles">{{ o.titles }}</div>
+    <div class="right"><b>{{ o.total|money }}</b><span class="status {{ o.status }}">{{ o.status }}</span></div>
+  </a>
+  {% else %}
+  <div class="empty">{{ ui.icon('receipt') }}<h2>No orders yet</h2><p class="muted">When you check out a cart, it shows up here.</p>
+    <a class="btn btn-gold" href="{{ url_for('main.search') }}">Browse films</a></div>
+  {% endfor %}
+  <div class="spacer"></div>
+</div>
+{% endblock %}

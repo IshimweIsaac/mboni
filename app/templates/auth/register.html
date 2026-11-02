@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ t('sign_up') }} · Mboni{% endblock %}
+{% block body_class %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block main %}
+{% set wall = all_movies() %}{% set quote = "Our stories, told by us, watched by the world." %}
+<div class="auth-page">
+  {% include "auth/_art.html" %}
+  <div class="auth-form">
+    <form method="post" class="stack" novalidate>
+      <input type="hidden" name="csrf" value="{{ csrf_token }}">
+      <div class="steps" aria-label="Sign-up steps"><span class="on"><b>1</b> Account</span><span><b>2</b> Plan</span><span><b>3</b> Watch</span></div>
+      <h1>Create your account</h1>
+      <p class="muted">Free to join. Pay only when you watch.</p>
+      <div class="field"><label for="name">Full name</label><input class="input" id="name" name="name" autocomplete="name" value="{{ form.name }}" required {% if errors.name %}aria-invalid="true" aria-describedby="e-name"{% endif %}>{% if errors.name %}<span class="error-text" id="e-name">{{ errors.name }}</span>{% endif %}</div>
+      <div class="field"><label for="email">Email</label><input class="input" id="email" name="email" type="email" autocomplete="email" value="{{ form.email or request.args.get('email', '') }}" required {% if errors.email %}aria-invalid="true" aria-describedby="e-email"{% endif %}>{% if errors.email %}<span class="error-text" id="e-email">{{ errors.email }}</span>{% endif %}</div>
+      <div class="field"><label for="phone">Mobile money number <span class="faint">(optional)</span></label><input class="input" id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="0788123456" value="{{ form.phone }}" {% if errors.phone %}aria-invalid="true" aria-describedby="e-phone"{% endif %}>{% if errors.phone %}<span class="error-text" id="e-phone">{{ errors.phone }}</span>{% else %}<span class="hint">Saves time at checkout. MTN or Airtel.</span>{% endif %}</div>
+      <div class="field"><label for="password">Password</label><div class="input-wrap"><input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="8" required data-strength {% if errors.password %}aria-invalid="true" aria-describedby="e-password"{% endif %}><button class="reveal" type="button" data-reveal="password">Show</button></div>
+        <div class="pw-meter" aria-hidden="true"><i id="pw-bar"></i></div><span class="hint" id="pw-text">At least 8 characters.</span>{% if errors.password %}<span class="error-text" id="e-password">{{ errors.password }}</span>{% endif %}</div>
+      <details class="about-you" {% if form.age_range or form.gender or form.community or form.heard_from %}open{% endif %}>
+        <summary>About you <span class="faint">(optional, 10 seconds)</span></summary>
+        <p class="hint">Helps us pick the right films for people like you. Never shared or sold.</p>
+        <div class="grid-2">
+          {% set labels = {'age_range': 'Age', 'gender': 'Gender', 'community': 'Where you live', 'heard_from': 'How did you hear about Mboni?'} %}
+          {% for key in ['age_range', 'gender', 'community', 'heard_from'] %}
+          <div class="field"><label for="{{ key }}">{{ labels[key] }}</label>
+            <select class="input" id="{{ key }}" name="{{ key }}"><option value="">Skip</option>
+              {% if key == 'heard_from' %}{% for code, label in about.heard_from.items() %}<option value="{{ code }}" {% if form.heard_from == code %}selected{% endif %}>{{ label.split(' (')[0] }}</option>{% endfor %}
+              {% else %}{% for v in about[key] %}<option {% if form[key] == v %}selected{% endif %}>{{ v }}</option>{% endfor %}{% endif %}
+            </select></div>
+          {% endfor %}
+        </div>
+      </details>
+      <button class="btn btn-gold btn-block">Create account {{ ui.icon('next') }}</button>
+      <p class="muted" style="text-align:center">Already a member? <a class="gold" style="font-weight:700" href="{{ url_for('auth.login') }}">{{ t('sign_in') }}</a></p>
+    </form>
+  </div>
+</div>
+{% endblock %}

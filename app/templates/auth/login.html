@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ t('sign_in') }} · Mboni{% endblock %}
+{% block body_class %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block main %}
+{% set wall = all_movies() %}{% set quote = "Until the lion learns to write, the story will glorify the hunter." %}
+<div class="auth-page">
+  {% include "auth/_art.html" %}
+  <div class="auth-form">
+    <form method="post" class="stack" novalidate>
+      <input type="hidden" name="csrf" value="{{ csrf_token }}">
+      <h1>Welcome back</h1>
+      <p class="muted">Sign in to keep watching where you left off.</p>
+      {% if error %}<div class="toast error" role="alert" style="animation:none">{{ error }}</div>{% endif %}
+      <div class="field"><label for="email">Email</label><input class="input" id="email" name="email" type="email" autocomplete="email" value="{{ email }}" required autofocus {% if error %}aria-invalid="true"{% endif %}></div>
+      <div class="field"><label for="password">Password</label><div class="input-wrap"><input class="input" id="password" name="password" type="password" autocomplete="current-password" required><button class="reveal" type="button" data-reveal="password">Show</button></div></div>
+      <button class="btn btn-gold btn-block">{{ t('sign_in') }}</button>
+      <p class="muted" style="text-align:center">New to Mboni? <a class="gold" style="font-weight:700" href="{{ url_for('auth.register') }}">Create an account</a></p>
+      <div class="demo-box"><b>Demo accounts</b><br>Viewer: <code>demo@mboni.rw</code> / <code>demo1234</code><br>Admin: <code>admin@mboni.rw</code> / <code>admin123</code>
+        <div class="row-gap" style="margin-top:8px"><button class="btn btn-sm" type="button" data-fill="demo@mboni.rw|demo1234">Use viewer</button><button class="btn btn-sm" type="button" data-fill="admin@mboni.rw|admin123">Use admin</button></div></div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+<div class="table-scroll"><table class="tbl">
+  <thead><tr><th>Ref</th><th>Date</th><th>Member</th><th>Item</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+  <tbody>{% for tx in (rows if rows is defined else recent) %}<tr>
+    <td><code style="font-size:.8rem">{{ tx.ref }}</code></td><td>{{ tx.created_at[:16] }}</td><td>{{ tx.name }}</td>
+    <td>{% if tx.kind == 'order' %}<a class="gold" href="{{ url_for('admin.order_detail', ref=tx.order_ref) }}">Cart order {{ tx.order_ref }}</a>{% else %}{{ tx.title or (tx.plan_code|capitalize ~ ' plan') }}{% endif %} <span class="faint">· {{ tx.kind }}</span></td>
+    <td>{{ {'mtn':'MTN MoMo','airtel':'Airtel','card':'Card'}[tx.method] }}</td>
+    <td><b>{{ tx.amount|money }}</b>{% if tx.promo_code %} <span class="tag">{{ tx.promo_code }}</span>{% endif %}</td>
+    <td><span class="status {{ tx.status }}">{{ tx.status }}</span></td></tr>
+  {% else %}<tr><td colspan="7" class="muted">No payments match.</td></tr>{% endfor %}</tbody>
+</table></div>

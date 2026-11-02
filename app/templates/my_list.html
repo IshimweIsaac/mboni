@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ t('my_list') }} · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>{{ t('my_list') }}</h1><p class="muted" style="margin:6px 0 0">{{ items|length }} saved for {{ g.profile.name }}</p></div></div>
+  {% if items %}
+  <div class="grid">{% for m in items %}{{ ui.card(m, progress.get(m.id), True) }}{% endfor %}</div>
+  {% else %}
+  <div class="empty">{{ ui.icon('list') }}<h2>Your list is empty</h2><p class="muted">Tap <b>+</b> on any film to save it here for later.</p><a class="btn btn-gold" href="{{ url_for('main.browse') }}">Browse films</a></div>
+  {% endif %}
+  <div class="spacer"></div>
+</div>
+{% endblock %}

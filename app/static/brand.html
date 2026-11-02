@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Name &amp; logo options</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Unbounded:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0b0906; --surface:#16120d; --line:#2a231a; --text:#f6efe4; --muted:#b6a993; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Plus Jakarta Sans",system-ui,sans-serif; }
+  .wrap { width:min(1180px, 100% - 32px); margin:0 auto; padding:48px 0 80px; }
+  h1 { font-family:Unbounded; font-size:clamp(1.8rem,4vw,2.8rem); margin:0 0 8px; letter-spacing:-.03em; }
+  .lead { color:var(--muted); margin:0 0 36px; max-width:62ch; }
+  .opt { display:grid; grid-template-columns: 1.25fr 1fr; gap:18px; margin-bottom:28px; padding:22px; border:1px solid var(--line); border-radius:28px; background:var(--surface); }
+  .num { font-family:Unbounded; font-size:.8rem; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; }
+  .hero { border-radius:20px; min-height:260px; display:grid; place-items:center; position:relative; overflow:hidden; }
+  .lockup { display:flex; align-items:center; gap:18px; }
+  .lockup svg.mark { width:84px; height:84px; flex:none; }
+  .word { font-family:Unbounded; font-weight:700; font-size:clamp(2.4rem,6vw,3.6rem); letter-spacing:-.05em; line-height:1; }
+  .tag { font-size:1rem; margin-top:8px; opacity:.75; letter-spacing:.01em; }
+  .side { display:grid; gap:14px; align-content:start; }
+  .story h2 { font-family:Unbounded; font-size:1.5rem; margin:4px 0 6px; }
+  .story p { margin:0; color:var(--muted); line-height:1.55; }
+  .story b { color:var(--text); }
+  .tiles { display:flex; gap:14px; align-items:end; flex-wrap:wrap; }
+  .tile { display:grid; justify-items:center; gap:6px; font-size:.72rem; color:var(--muted); }
+  .appicon { width:76px; height:76px; border-radius:20px; display:grid; place-items:center; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+  .appicon svg { width:52px; height:52px; }
+  .fav { width:32px; height:32px; border-radius:8px; display:grid; place-items:center; }
+  .fav svg { width:24px; height:24px; }
+  .light { background:#f7f1e7; color:#1b140c; border-radius:16px; padding:14px 18px; display:flex; align-items:center; gap:10px; }
+  .light svg { width:34px; height:34px; }
+  .light span { font-family:Unbounded; font-weight:700; font-size:1.5rem; letter-spacing:-.05em; }
+  .why { font-size:.85rem; color:var(--muted); border-top:1px solid var(--line); padding-top:12px; }
+  .why li { margin:4px 0; }
+  .rec { display:inline-block; background:#f5a524; color:#1b1306; font-weight:800; font-size:.72rem; padding:4px 10px; border-radius:999px; letter-spacing:.06em; text-transform:uppercase; margin-left:8px; vertical-align:middle; }
+  @media (max-width:860px) { .opt { grid-template-columns:1fr; } .lockup svg.mark { width:64px; height:64px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Name &amp; logo options</h1>
+  <p class="lead">Four directions for the platform. Each has a name with a real meaning in Kinyarwanda or Swahili, a symbol that also works as an app icon and a 32px favicon, and a tagline. None of the names is used by an existing streaming service.</p>
+
+  <!-- shared gradients -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset=".55" stop-color="#f5a524"/><stop offset="1" stop-color="#e4572e"/></linearGradient>
+      <linearGradient id="dusk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#4c1d95"/></linearGradient>
+      <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset=".55" stop-color="#10b981"/><stop offset="1" stop-color="#065f46"/></linearGradient>
+      <linearGradient id="clay" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdba74"/><stop offset=".5" stop-color="#ea580c"/><stop offset="1" stop-color="#9a3412"/></linearGradient>
+      <!-- MBONI: an eye whose pupil is a play button -->
+      <symbol id="m-mboni" viewBox="0 0 64 64">
+        <path d="M3 32C11 18 21 11 32 11s21 7 29 21c-8 14-18 21-29 21S11 46 3 32Z" fill="none" stroke="url(#sun)" stroke-width="5" stroke-linejoin="round"/>
+        <circle cx="32" cy="32" r="14" fill="url(#sun)"/>
+        <path d="M28 25.5v13a1 1 0 0 0 1.5.9l10.5-6.5a1 1 0 0 0 0-1.8l-10.5-6.5a1 1 0 0 0-1.5.9Z" fill="#1b1306"/>
+      </symbol>
+      <!-- INZOZI: a crescent moon cradling a play button, with one star -->
+      <symbol id="m-inzozi" viewBox="0 0 64 64">
+        <mask id="cres"><rect width="64" height="64" fill="#fff"/><circle cx="42" cy="24" r="22" fill="#000"/></mask>
+        <circle cx="30" cy="34" r="26" fill="url(#dusk)" mask="url(#cres)"/>
+        <path d="M33 27v15a1.2 1.2 0 0 0 1.8 1l12.4-7.5a1.2 1.2 0 0 0 0-2L34.8 26a1.2 1.2 0 0 0-1.8 1Z" fill="#fde68a"/>
+        <path d="M52 6l1.6 4.4L58 12l-4.4 1.6L52 18l-1.6-4.4L46 12l4.4-1.6Z" fill="#fde68a"/>
+      </symbol>
+      <!-- HADITHI: a speech bubble (story) with a play button and an imigongo zigzag -->
+      <symbol id="m-hadithi" viewBox="0 0 64 64">
+        <path d="M10 6h44a6 6 0 0 1 6 6v28a6 6 0 0 1-6 6H28L15 57v-11h-5a6 6 0 0 1-6-6V12a6 6 0 0 1 6-6Z" fill="url(#clay)"/>
+        <path d="M27 15.5v17a1.2 1.2 0 0 0 1.8 1l13.5-8.5a1.2 1.2 0 0 0 0-2L28.8 14.5a1.2 1.2 0 0 0-1.8 1Z" fill="#fff7ed"/>
+        <path d="M8 40l6-5 6 5 6-5 6 5 6-5 6 5 6-5 6 5" fill="none" stroke="#fff7ed" stroke-width="2.6" stroke-linejoin="round" opacity=".55"/>
+      </symbol>
+      <!-- NYOTA (refined): the four-point star with a play button cut into its heart -->
+      <symbol id="m-nyota" viewBox="0 0 64 64">
+        <path d="M32 2c2.2 13.4 6.6 22.8 30 30-23.4 7.2-27.8 16.6-30 30-2.2-13.4-6.6-22.8-30-30C25.4 24.8 29.8 15.4 32 2Z" fill="url(#sun)"/>
+        <path d="M28.5 25.5v13a1 1 0 0 0 1.5.9l10.5-6.5a1 1 0 0 0 0-1.8L30 24.6a1 1 0 0 0-1.5.9Z" fill="#1b1306"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- 1 MBONI -->
+  <section class="opt">
+    <div class="hero" style="background:radial-gradient(120% 90% at 20% 0%, #3b2508, #0b0906 60%)">
+      <div>
+        <div class="lockup"><svg class="mark"><use href="#m-mboni"/></svg><div><div class="word">mboni</div><div class="tag">See Africa.</div></div></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="story"><span class="num">Option 1</span><span class="rec">My pick</span><h2>Mboni</h2>
+        <p>Swahili for <b>the pupil of the eye</b>, and used to mean <b>“the apple of my eye”</b>, something precious. The logo is an eye whose pupil is a play button: watching, and loving what you watch.</p></div>
+      <div class="tiles">
+        <div class="tile"><div class="appicon" style="background:#14100a"><svg><use href="#m-mboni"/></svg></div>App icon</div>
+        <div class="tile"><div class="fav" style="background:#14100a"><svg><use href="#m-mboni"/></svg></div>Favicon</div>
+        <div class="light"><svg><use href="#m-mboni"/></svg><span>mboni</span></div>
+      </div>
+      <ul class="why"><li>Short, two syllables, easy in English, French and Kinyarwanda</li><li>The eye shape is still clear at 16px</li><li>Keeps the current gold and sunset colours, so the site barely changes</li></ul>
+    </div>
+  </section>
+
+  <!-- 2 INZOZI -->
+  <section class="opt">
+    <div class="hero" style="background:radial-gradient(120% 90% at 80% 0%, #2a1650, #0b0906 62%)">
+      <div class="lockup"><svg class="mark"><use href="#m-inzozi"/></svg><div><div class="word">inzozi</div><div class="tag">Stories worth dreaming of.</div></div></div>
+    </div>
+    <div class="side">
+      <div class="story"><span class="num">Option 2</span><h2>Inzozi</h2>
+        <p>Kinyarwanda for <b>dreams</b>. A crescent moon holding a play button: the film you fall asleep thinking about. Made in Rwanda, and it sounds it.</p></div>
+      <div class="tiles">
+        <div class="tile"><div class="appicon" style="background:#120c1f"><svg><use href="#m-inzozi"/></svg></div>App icon</div>
+        <div class="tile"><div class="fav" style="background:#120c1f"><svg><use href="#m-inzozi"/></svg></div>Favicon</div>
+        <div class="light"><svg><use href="#m-inzozi"/></svg><span>inzozi</span></div>
+      </div>
+      <ul class="why"><li>Strongest local identity for a Rwandan university project</li><li>Night-sky purple stands out from the red of Netflix and Showmax</li><li>Needs the site's gold accents switched to purple</li></ul>
+    </div>
+  </section>
+
+  <!-- 3 HADITHI -->
+  <section class="opt">
+    <div class="hero" style="background:radial-gradient(120% 90% at 20% 100%, #3a1608, #0b0906 62%)">
+      <div class="lockup"><svg class="mark"><use href="#m-hadithi"/></svg><div><div class="word">hadithi</div><div class="tag">Every story, ours.</div></div></div>
+    </div>
+    <div class="side">
+      <div class="story"><span class="num">Option 3</span><h2>Hadithi</h2>
+        <p>Swahili for <b>story</b>. A speech bubble, because African cinema grew out of telling stories aloud, with a play button and an imigongo zigzag along the bottom.</p></div>
+      <div class="tiles">
+        <div class="tile"><div class="appicon" style="background:#1a0d06"><svg><use href="#m-hadithi"/></svg></div>App icon</div>
+        <div class="tile"><div class="fav" style="background:#1a0d06"><svg><use href="#m-hadithi"/></svg></div>Favicon</div>
+        <div class="light"><svg><use href="#m-hadithi"/></svg><span>hadithi</span></div>
+      </div>
+      <ul class="why"><li>The meaning explains the product straight away</li><li>Warm clay colours echo the imigongo patterns on the posters</li><li>Also used in some Swahili film titles, so it's less unique</li></ul>
+    </div>
+  </section>
+
+  <!-- 4 NYOTA refined -->
+  <section class="opt">
+    <div class="hero" style="background:radial-gradient(120% 90% at 50% 0%, #33210a, #0b0906 62%)">
+      <div class="lockup"><svg class="mark"><use href="#m-nyota"/></svg><div><div class="word">nyota</div><div class="tag">African stars, on every screen.</div></div></div>
+    </div>
+    <div class="side">
+      <div class="story"><span class="num">Option 4</span><h2>Nyota, refined</h2>
+        <p>Keep the current name (Swahili for <b>star</b>) and sharpen the logo: a fuller four-point star with a play button cut into its centre, so it reads as streaming, not just a sparkle.</p></div>
+      <div class="tiles">
+        <div class="tile"><div class="appicon" style="background:#14100a"><svg><use href="#m-nyota"/></svg></div>App icon</div>
+        <div class="tile"><div class="fav" style="background:#14100a"><svg><use href="#m-nyota"/></svg></div>Favicon</div>
+        <div class="light"><svg><use href="#m-nyota"/></svg><span>nyota</span></div>
+      </div>
+      <ul class="why"><li>No renaming: docs, logins and screenshots stay the same</li><li>A star with a play button is easy to explain in the demo</li></ul>
+    </div>
+  </section>
+</div>
+</body>
+</html>

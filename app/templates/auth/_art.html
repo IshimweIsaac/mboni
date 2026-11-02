@@ -1,0 +1,5 @@
+{% import "partials/macros.html" as ui with context %}
+<div class="auth-art" aria-hidden="true">
+  <div class="poster-wall">{% for col in range(4) %}<div class="col">{% for m in wall[col * 4:col * 4 + 4] + wall[col * 4:col * 4 + 4] %}{{ ui.art(m) }}{% endfor %}</div>{% endfor %}</div>
+  <p class="quote">“{{ quote }}”</p>
+</div>

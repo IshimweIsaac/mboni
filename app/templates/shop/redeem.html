@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Redeem a gift · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page" style="max-width:560px;text-align:center">
+  <div class="big-ic" style="background:color-mix(in srgb,var(--gold) 20%,var(--surface));color:var(--gold)">{{ ui.icon('gift') }}</div>
+  <h1 style="font-size:clamp(1.7rem,4vw,2.4rem)">Someone sent you a film?</h1>
+  <p class="muted">Enter the gift code from your message. The film goes straight to your Library.</p>
+  <form method="post" class="panel stack" style="text-align:left;margin-top:20px">
+    <input type="hidden" name="csrf" value="{{ csrf_token }}">
+    <div class="field"><label for="code">Gift code</label>
+      <input class="input code-input" id="code" name="code" value="{{ code }}" placeholder="MBONI-AB12-CD34" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="16" required {% if error %}aria-invalid="true" aria-describedby="e-code"{% endif %}>
+      {% if error %}<span class="error-text" id="e-code">{{ error }}</span>{% else %}<span class="hint">Letters and numbers only. There's no O or I, so 0 and 1 can't be mixed up.</span>{% endif %}</div>
+    <button class="btn btn-gold btn-block">{{ ui.icon('gift') }} {{ 'Unlock my film' if g.user else 'Sign in and unlock' }}</button>
+    {% if not g.user %}<p class="hint" style="text-align:center">No account yet? <a class="gold" href="{{ url_for('auth.register') }}">Join free</a>, then come back with your code.</p>{% endif %}
+  </form>
+</div>
+{% endblock %}

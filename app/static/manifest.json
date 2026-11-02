@@ -1,0 +1,20 @@
+{
+  "name": "Mboni · African cinema",
+  "short_name": "Mboni",
+  "description": "Stream, rent and buy the best African films.",
+  "start_url": "/browse",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0906",
+  "theme_color": "#0b0906",
+  "icons": [
+    { "src": "/static/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/static/icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Search", "url": "/search" },
+    { "name": "My Library", "url": "/library" }
+  ]
+}

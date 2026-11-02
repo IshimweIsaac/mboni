@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Checkout · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="steps"><span class="done"><b>✓</b> Choose</span><span class="on"><b>2</b> Pay</span><span><b>3</b> Watch</span></div>
+  <div class="checkout">
+    <form method="post" class="panel stack" id="checkout-form" novalidate>
+      <input type="hidden" name="csrf" value="{{ csrf_token }}">
+      <input type="hidden" name="kind" value="{{ order.kind }}">
+      {% if order.plan %}<input type="hidden" name="plan" value="{{ order.plan.code }}">{% endif %}
+      {% if order.movie %}<input type="hidden" name="movie" value="{{ order.movie.slug }}">{% endif %}
+      <h1 style="font-size:clamp(1.5rem,3vw,2rem)">How would you like to pay?</h1>
+      {% if errors %}<div class="toast error" role="alert" style="animation:none">Please fix the highlighted details below.</div>{% endif %}
+      {% set show_promo = True %}{% include "billing/_pay_fields.html" %}
+      <button class="btn btn-gold btn-block" id="pay-btn">{{ ui.icon('lock') }} Pay <span id="pay-amount">{{ order.amount|money }}</span></button>
+      <div class="secure">{{ ui.icon('shield') }} Demo checkout. No real money moves. Test failure: number ending 0000 or card 4000 0000 0000 0002.</div>
+    </form>
+
+    <aside class="panel summary" aria-label="Order summary">
+      <div class="row-gap" style="align-items:flex-start;flex-wrap:nowrap">
+        {% if order.movie %}<div style="width:86px;flex:none">{{ ui.art(order.movie, badges=False) }}</div>
+        {% else %}<div class="way" style="padding:16px;flex:none"><div class="icon">{{ ui.icon('crown') }}</div></div>{% endif %}
+        <div><span class="tag {{ 'tag-gold' if order.kind != 'subscription' else 'tag-leaf' }}">{{ order.kind }}</span><h2 style="margin:8px 0 4px;font-size:1.1rem">{{ order.title }}</h2><p class="muted" style="font-size:.88rem;margin:0">{{ order.subtitle }}</p></div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="line"><span>Price</span><span>{{ order.amount|money }}</span></div>
+        {% if order.access and order.access.discount %}<div class="line"><span>Subscriber discount</span><span class="gold">−{{ order.access.discount }}% applied</span></div>{% endif %}
+        <div class="line" id="discount-line" {% if not form.promo or errors.promo %}hidden{% endif %}><span>Promo <b id="promo-name">{{ form.promo|upper }}</b></span><span class="gold" id="discount-amt"></span></div>
+        <div class="line total"><span>Total</span><b id="total" data-base="{{ order.amount }}">{{ order.amount|money }}</b></div>
+      </div>
+      {% if order.kind == 'rent' %}<p class="hint" style="margin-top:12px">{{ ui.icon('clock')|safe }} You'll have 48 hours to watch. Streaming only.</p>{% endif %}
+      {% if order.kind == 'subscription' %}<p class="hint" style="margin-top:12px">30 days of access. We'll remind you 3 days before renewal. Cancel anytime.</p>{% endif %}
+          {% include "partials/trust.html" %}
+    </aside>
+  </div>
+  <div class="spacer"></div>
+</div>
+{% endblock %}

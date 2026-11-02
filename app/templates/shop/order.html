@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Order {{ order.ref }} · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page" style="max-width:1040px">
+  <div class="receipt-head" {% if celebrate and order.status == 'delivered' %}data-celebrate{% endif %}>
+    {% if order.status == 'delivered' %}
+      <div class="big-ic ok">{{ ui.icon('check') }}</div>
+      <h1>{% if celebrate %}Murakoze! Your films are ready.{% else %}Order delivered{% endif %}</h1>
+      <p class="muted">Everything for you is in your <a class="gold" href="{{ url_for('main.library') }}">Library</a>{% if gifts %}, and your gift codes are below{% endif %}.</p>
+    {% elif order.status == 'pending' %}
+      <div class="big-ic" style="background:color-mix(in srgb,var(--gold) 20%,var(--surface))">{{ ui.icon('clock') }}</div>
+      <h1>Waiting for payment</h1>
+      <p class="muted">Nothing has been charged yet. Your order is saved, so you can pay whenever you're ready.</p>
+    {% elif order.status == 'paid' %}
+      <div class="big-ic ok">{{ ui.icon('check') }}</div><h1>Paid, delivery on its way</h1>
+      <p class="muted">We've received your payment. Your films will appear in your Library shortly.</p>
+    {% else %}
+      <div class="big-ic bad">{{ ui.icon('x') }}</div><h1>Order {{ order.status }}</h1>
+      <p class="muted">{% if order.status == 'refunded' %}The money was returned and the films were removed from the Library.{% else %}This order was cancelled. Nothing was charged.{% endif %}</p>
+    {% endif %}
+    {% include "shop/_timeline.html" %}
+    <div class="row-gap" style="justify-content:center;margin-top:18px">
+      {% if order.status == 'pending' %}
+        <a class="btn btn-gold" href="{{ url_for('shop.pay_order', ref=order.ref) }}">{{ ui.icon('lock') }} Pay {{ order.total|money }}</a>
+        <form method="post" action="{{ url_for('shop.cancel_order', ref=order.ref) }}" data-confirm="Cancel order {{ order.ref }}? Nothing has been charged.">
+          <input type="hidden" name="csrf" value="{{ csrf_token }}"><button class="btn btn-ghost">Cancel order</button></form>
+      {% elif order.status == 'delivered' %}
+        <a class="btn btn-gold" href="{{ url_for('main.library') }}">{{ ui.icon('play') }} Go to my Library</a>
+      {% endif %}
+      <button class="btn" type="button" onclick="window.print()">{{ ui.icon('receipt') }} Print invoice</button>
+    </div>
+  </div>
+
+  <div class="order-grid">
+    <section class="panel">
+      <div class="row-head"><h2>Items</h2><span class="faint">{{ order.ref }} · {{ order.created_at[:16] }}</span></div>
+      <ul class="mini-lines">
+        {% for i in items %}
+        <li><div class="mini-art">{% if i.slug %}{{ ui.art(i, badges=False, show_title=False) }}{% endif %}</div>
+          <div>{% if i.slug %}<a href="{{ url_for('main.detail', slug=i.slug) }}"><b>{{ i.title }}</b></a>{% else %}<b>{{ i.title }}</b>{% endif %}
+            <span class="faint">{{ 'Rental, 48 hours' if i.kind == 'rent' else 'Bought, yours to keep' }} · {{ i.qty }} × {{ i.unit_price|money }}</span></div>
+          <span>{{ i.line_total|money }}</span></li>
+        {% endfor %}
+      </ul>
+      <div class="summary" style="position:static">
+        <div class="line"><span>Subtotal</span><span>{{ order.subtotal|money }}</span></div>
+        {% if order.discount %}<div class="line"><span>Promo {{ order.promo_code }}</span><span class="gold">−{{ order.discount|money }}</span></div>{% endif %}
+        <div class="line total"><span>Total</span><b>{{ order.total|money }}</b></div>
+      </div>
+    </section>
+
+    <section class="panel stack">
+      <h2>Delivery details</h2>
+      <dl class="facts" style="margin:0">
+        <dt>Name</dt><dd>{{ order.contact_name }}</dd>
+        <dt>Email</dt><dd>{{ order.email }}</dd>
+        <dt>Phone</dt><dd>{{ order.phone }}</dd>
+        <dt>Delivery</dt><dd>Digital, to your Library</dd>
+        {% if order.gift_note %}<dt>Gift note</dt><dd>“{{ order.gift_note }}”</dd>{% endif %}
+      </dl>
+      <h2 style="margin-top:20px">Payments</h2>
+      {% for p in payments %}
+      <div class="line" style="display:flex;justify-content:space-between;gap:10px;padding:6px 0"><span>{{ methods[p.method] }} {{ p.account.rstrip('!') }}<br><small class="faint">{{ p.ref }} · {{ p.created_at[:16] }}</small></span><span class="status {{ p.status }}">{{ p.status }}</span></div>
+      {% else %}<p class="muted">No payment attempts yet.</p>{% endfor %}
+    </section>
+  </div>
+
+  {% if gifts %}
+  <section class="panel" style="margin-top:18px">
+    <div class="row-head"><h2>{{ ui.icon('gift') }} Gift codes</h2><span class="faint">Send a code to a friend. They redeem it at <b>{{ request.host }}/redeem</b></span></div>
+    <div class="gift-grid">
+      {% for c in gifts %}
+      <div class="gift-card{{ ' used' if c.redeemed_by or c.void }}">
+        <small>{{ c.title }} · {{ 'Rent 48h' if c.kind == 'rent' else 'Keep forever' }}</small>
+        <code>{{ c.code }}</code>
+        {% if c.void %}<span class="status refunded">Cancelled</span>
+        {% elif c.redeemed_by %}<span class="status delivered">Used by {{ c.redeemer.split()[0] }}</span>
+        {% else %}<div class="row-gap"><button class="btn btn-sm" type="button" data-copy="{{ c.code }}">Copy</button><button class="btn btn-sm btn-ghost" type="button" data-share="{{ c.title }}" data-share-text="I sent you {{ c.title }} on Mboni! Redeem code {{ c.code }} at {{ url_for('shop.redeem', code=c.code, _external=True) }}">{{ ui.icon('share') }} Share</button></div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="panel" style="margin-top:18px">
+    <h2 style="margin-bottom:10px">History</h2>
+    <ul class="events">{% for e in events|reverse %}<li><span class="status {{ e.status }}">{{ e.status }}</span><div>{{ e.note or ORDER_STATUS[e.status] }}<small class="faint">{{ e.created_at[:16] }} · {{ e.actor }}</small></div></li>{% endfor %}</ul>
+  </section>
+  <p class="hint" style="text-align:center;margin-top:16px">Something wrong with this order? <a class="gold" href="{{ url_for('shop.contact', topic='Payment or order') }}">Contact us</a> and quote {{ order.ref }}.</p>
+  <div class="spacer"></div>
+</div>
+{% endblock %}

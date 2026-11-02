@@ -1,0 +1,99 @@
+{% extends "admin/_base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Customers · Admin · Mboni{% endblock %}
+{% block admin %}
+<div class="page-head"><div><h1>Understanding our customers</h1>
+  <p class="muted" style="margin:6px 0 0">How people find Mboni, move through the five buying stages, and what makes them trust us. Built from the clickstream (every visit, search, film view, cart and payment).</p></div>
+  <nav class="row-gap" aria-label="Period">{% for d in [7, 30, 90] %}<a class="chip {{ 'on' if r.days == d }}" href="{{ url_for('admin.customers', days=d) }}">{{ d }} days</a>{% endfor %}</nav>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><span>Visitors</span><b>{{ "{:,}".format(r.visitors) }}</b><small>last {{ r.days }} days</small></div>
+  <div class="kpi"><span>Visit → purchase</span><b>{{ r.conversion }}%</b><small>of visitors bought</small></div>
+  <div class="kpi"><span>Buyers</span><b>{{ r.buyers }}</b><small>{{ r.buyer_rate }}% of {{ r.members }} members</small></div>
+  <div class="kpi"><span>Browsers</span><b>{{ r.browsers }}</b><small>members who never paid</small></div>
+  <div class="kpi"><span>Repeat buyers</span><b>{{ r.repeat_rate }}%</b><small>{{ r.repeat }} bought more than once</small></div>
+  <div class="kpi"><span>On a phone</span><b>{{ r.mobile_share }}%</b><small>of visitors</small></div>
+</div>
+
+<section class="panel" style="margin-bottom:18px">
+  <div class="row-head"><h2>The five stages of the online purchase decision</h2><span class="faint">unique visitors</span></div>
+  <ol class="funnel">
+    {% for s in r.funnel %}
+    <li>
+      <div class="f-label"><b>{{ loop.index }}. {{ s.name }}</b><span class="faint">{{ s.means }}</span></div>
+      <div class="f-bar"><i style="width:{{ [s.of_all, 2]|max }}%"></i><span>{{ "{:,}".format(s.n) }} · {{ s.of_all }}%</span></div>
+      <div class="f-drop">{% if not loop.first %}<b>{{ s.from_prev }}%</b> continue<br><span class="faint">{{ s.lost }} dropped</span>{% endif %}</div>
+    </li>
+    {% endfor %}
+  </ol>
+  <p class="hint" style="margin-top:12px">The biggest drop is where to act: a visitor who leaves after the home page needs better awareness and search; one who leaves at the cart needs more trust or an easier payment.</p>
+</section>
+
+<div class="admin-grid">
+  <section class="panel">
+    <div class="row-head"><h2>Who is online</h2><span class="faint">members, and how many of them buy</span></div>
+    {% for title, rows in r.audience.items() %}
+    <h3 class="seg-title">{{ title }}</h3>
+    {% set top = rows|map(attribute='n')|max if rows else 1 %}
+    {% for row in rows %}
+    <div class="hbar"><span>{{ row.label }}</span><span class="track"><i style="width:{{ 100 * row.n / top }}%;background:var(--gold)"></i></span><b>{{ row.n }} <small class="faint">· {{ row.rate }}% buy</small></b></div>
+    {% endfor %}
+    {% endfor %}
+    <h3 class="seg-title">Device</h3>
+    {% set dtot = (r.devices.get('mobile', 0) + r.devices.get('desktop', 0)) or 1 %}
+    {% for d in ['mobile', 'desktop'] %}
+    <div class="hbar"><span>{{ d|capitalize }}</span><span class="track"><i style="width:{{ 100 * r.devices.get(d, 0) / dtot }}%;background:var(--sky)"></i></span><b>{{ r.devices.get(d, 0) }} <small class="faint">· {{ r.device_conv[d] }}% buy</small></b></div>
+    {% endfor %}
+  </section>
+
+  <section class="panel">
+    <div class="row-head"><h2>How they heard about us</h2><span class="faint">reference groups &amp; opinion leaders</span></div>
+    {% set stop = r.sources|map(attribute='n')|max or 1 %}
+    {% for s in r.sources %}
+    <div class="hbar wide"><span>{{ s.label }}</span><span class="track"><i style="width:{{ 100 * s.n / stop }}%;background:var(--leaf)"></i></span><b>{{ s.n }} <small class="faint">· {{ s.rate }}% buy</small></b></div>
+    {% endfor %}
+    <p class="hint" style="margin-top:10px">People who come through friends, family or a critic they follow tend to buy more than people who saw an ad: trust is borrowed from someone they already know.</p>
+
+    <h2 style="margin-top:22px">What they buy</h2>
+    {% set t = r.tickets %}{% set tt = (t.small_n + t.big_n) or 1 %}
+    <div class="ticket-split">
+      <div><b>{{ t.small_n }}</b><span>small-ticket (≤ {{ r.small_ticket|money }})</span><small class="faint">{{ (100 * t.small_n / tt)|round|int }}% of payments · {{ t.small_v|money }}</small></div>
+      <div><b>{{ t.big_n }}</b><span>big-ticket (more)</span><small class="faint">{{ (100 * t.big_n / tt)|round|int }}% of payments · {{ t.big_v|money }}</small></div>
+    </div>
+    <p class="hint">Rentals are the easy first purchase; buying to keep and yearly plans come after trust is built.</p>
+  </section>
+</div>
+
+<div class="admin-grid">
+  <section class="panel">
+    <h2 style="margin-bottom:12px">Trust and utility</h2>
+    <div class="trust-grid">
+      <div><b>{{ r.trust.avg }}/5</b><span>average rating from {{ r.trust.reviews }} reviews</span></div>
+      <div><b>{{ r.trust.verified }}%</b><span>of reviews are from verified viewers</span></div>
+      <div><b>{{ r.trust.failed }}%</b><span>of payments failed (MoMo timeouts, wrong PIN)</span></div>
+      <div><b>{{ r.trust.refunds }}%</b><span>of cart orders refunded</span></div>
+      <div><b>{{ r.trust.abandoned }}</b><span>members with films waiting in their cart</span></div>
+    </div>
+    <p class="hint" style="margin-top:12px">Customers buy when <b>trust</b> (will I get what I pay for?) and <b>utility</b> (is it worth it?) are both high. Mboni builds trust with verified reviews, a refund promise, secure MoMo approval on the customer's own phone and a real help centre, and utility with low rental prices, data saver and offline downloads.</p>
+  </section>
+  <section class="panel">
+    <h2 style="margin-bottom:12px">What people search for</h2>
+    {% set smax = r.searches[0].n if r.searches else 1 %}
+    {% for s in r.searches %}<div class="hbar"><span>“{{ s.term }}”</span><span class="track"><i style="width:{{ 100 * s.n / smax }}%;background:var(--clay)"></i></span><b>{{ s.n }}</b></div>
+    {% else %}<p class="muted">No searches yet.</p>{% endfor %}
+  </section>
+</div>
+
+<section class="panel">
+  <div class="row-head"><h2>Clickstream: the latest visitors, step by step</h2><span class="faint">each row is one visitor</span></div>
+  <div class="streams">
+    {% for st in r.streams %}
+    <div class="stream">
+      <div class="who"><b>{{ st.who }}</b><span class="faint">{{ st.device }} · {{ st.last[5:16] }}</span>{% if st.bought %}<span class="status paid">bought</span>{% else %}<span class="status pending">browsed</span>{% endif %}</div>
+      <ol>{% for e in st.steps %}<li class="ev-{{ e.type }}" title="{{ e.created_at }}">{{ {'visit':'Visit','search':'Search','view_film':'Film page','trailer':'Trailer','add_to_cart':'Add to cart','checkout':'Checkout','purchase':'Paid','watch':'Watch','review':'Review'}[e.type] }}{% if e.detail and e.type == 'search' %} “{{ e.detail }}”{% elif e.title %} · {{ e.title }}{% endif %}</li>{% endfor %}</ol>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

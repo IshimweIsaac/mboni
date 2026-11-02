@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ 'Trailer · ' if trailer }}{{ movie.title }} · Mboni{% endblock %}
+{% block body_class %}player-page{% endblock %}
+{% block nav %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block main %}
+<div class="player" id="player"
+     data-slug="{{ movie.slug }}" data-start="{{ position }}" data-trailer="{{ 'true' if trailer else 'false' }}"
+     data-save="{{ 'true' if g.profile and not trailer else 'false' }}" data-progress-url="{{ url_for('main.save_progress') }}"
+     data-quality="{{ default_quality }}">
+  <video id="video" playsinline preload="metadata" crossorigin="anonymous"
+         src="{{ url_for('static', filename=qualities[default_quality].src) }}" aria-label="{{ movie.title }}">
+    <track kind="subtitles" srclang="en" label="English" src="{{ url_for('static', filename='subs/en.vtt') }}">
+    <track kind="subtitles" srclang="rw" label="Kinyarwanda" src="{{ url_for('static', filename='subs/rw.vtt') }}">
+    <track kind="subtitles" srclang="fr" label="Français" src="{{ url_for('static', filename='subs/fr.vtt') }}">
+  </video>
+
+  <div class="layer" id="layer">
+    <div class="top">
+      <a class="pbtn" href="{{ url_for('main.detail', slug=movie.slug) }}" aria-label="Back to film page">{{ ui.icon('back') }}</a>
+      <div>
+        <h1>{{ movie.title }}{% if trailer %} <span class="tag tag-gold">Trailer</span>{% endif %}</h1>
+        <div class="meta"><span>{{ movie.year }}</span><span class="dot">{{ movie.country }}</span><span class="dot">{{ movie.age }}</span></div>
+      </div>
+      <span class="grow" style="flex:1"></span>
+      <span class="player-badge hide-xs" id="data-badge">{{ ui.icon('gauge') }} <span>{{ qualities[default_quality].label }} · ~{{ qualities[default_quality].mb_per_hour }} MB/h</span></span>
+      {% if access.reason == 'rented' %}<span class="player-badge hide-xs">{{ ui.icon('clock') }} Rental</span>{% endif %}
+    </div>
+
+    <div class="center">
+      <button class="pbtn" type="button" data-skip="-10" aria-label="Back 10 seconds">{{ ui.icon('back10') }}</button>
+      <button class="pbtn big" type="button" id="play" aria-label="Play">{{ ui.icon('play') }}</button>
+      <button class="pbtn" type="button" data-skip="10" aria-label="Forward 10 seconds">{{ ui.icon('fwd10') }}</button>
+    </div>
+
+    <div class="bottom">
+      <div class="seek" id="seek" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="track"><div class="buf" id="buf"></div><div class="done" id="done"></div><div class="knob" id="knob"></div></div>
+        <span class="tip" id="tip">0:00</span>
+      </div>
+      <div class="controls">
+        <button class="pbtn" type="button" id="play-sm" aria-label="Play">{{ ui.icon('play') }}</button>
+        <button class="pbtn" type="button" id="mute" aria-label="Mute">{{ ui.icon('volume') }}</button>
+        <input class="vol" id="vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+        <span class="time" id="time">0:00 / 0:00</span>
+        <span class="grow"></span>
+        <button class="pbtn" type="button" id="settings-btn" aria-label="Quality, speed and subtitles" aria-expanded="false" aria-controls="sheet">{{ ui.icon('settings') }}</button>
+        <button class="pbtn" type="button" id="cc-btn" aria-label="Subtitles" aria-pressed="false">{{ ui.icon('cc') }}</button>
+        <button class="pbtn hide-xs" type="button" id="pip-btn" aria-label="Picture in picture" hidden>{{ ui.icon('pip') }}</button>
+        <button class="pbtn" type="button" id="fs-btn" aria-label="Full screen">{{ ui.icon('expand') }}</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet" id="sheet" role="dialog" aria-label="Playback settings">
+    <h4>Quality</h4>
+    {% for key, q in qualities.items() %}
+    <button type="button" role="menuitemradio" data-q="{{ key }}" data-src="{{ url_for('static', filename=q.src) }}" data-label="{{ q.label }} · ~{{ q.mb_per_hour }} MB/h" aria-checked="{{ 'true' if key == default_quality else 'false' }}">{{ key }} {{ q.label }} <small>~{{ q.mb_per_hour }} MB/h</small></button>
+    {% endfor %}
+    <h4>Subtitles</h4>
+    <button type="button" role="menuitemradio" data-sub="off" aria-checked="true">Off</button>
+    <button type="button" role="menuitemradio" data-sub="en" aria-checked="false">English</button>
+    <button type="button" role="menuitemradio" data-sub="rw" aria-checked="false">Kinyarwanda</button>
+    <button type="button" role="menuitemradio" data-sub="fr" aria-checked="false">Français</button>
+    <h4>Speed</h4>
+    {% for s in [0.75, 1, 1.25, 1.5] %}<button type="button" role="menuitemradio" data-speed="{{ s }}" aria-checked="{{ 'true' if s == 1 else 'false' }}">{{ s }}×</button>{% endfor %}
+    <h4>Keyboard</h4>
+    <p style="font-size:.8rem;color:rgba(255,255,255,.6);margin:0 6px 6px;line-height:2"><span class="kbd">Space</span> play · <span class="kbd">←</span><span class="kbd">→</span> 10s · <span class="kbd">F</span> full screen · <span class="kbd">M</span> mute · <span class="kbd">C</span> subtitles</p>
+  </div>
+
+  <button class="btn btn-glass skip-intro" type="button" id="skip-intro">Skip intro {{ ui.icon('next') }}</button>
+
+  {% if trailer %}
+  <div class="next-card" id="trailer-end" role="dialog" aria-label="Trailer finished">
+    {{ ui.art(movie) }}
+    <div><b>Enjoyed the trailer?</b><p class="muted" style="font-size:.85rem;margin:4px 0 10px">Watch the full film now.</p>
+      {% if access.can_watch %}<a class="btn btn-gold btn-sm" href="{{ url_for('main.watch', slug=movie.slug) }}">{{ t('watch_now') }}</a>
+      {% else %}<a class="btn btn-gold btn-sm" href="{{ url_for('main.detail', slug=movie.slug) }}#watch-options">{{ t('rent') }} · {{ access.rent_price|money }}</a>{% endif %}
+    </div>
+  </div>
+  {% elif up_next %}
+  <div class="next-card" id="up-next" role="dialog" aria-label="Up next">
+    {{ ui.art(up_next) }}
+    <div><span class="faint" style="font-size:.75rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase">Up next in <span class="ring" id="next-count">10</span></span><br><b>{{ up_next.title }}</b><p class="muted" style="font-size:.82rem;margin:4px 0 10px">{{ up_next.tagline }}</p>
+      <div class="row-gap"><a class="btn btn-gold btn-sm" id="next-go" href="{{ url_for('main.detail', slug=up_next.slug) }}">Open</a><button class="btn btn-sm" type="button" id="next-cancel">Cancel</button></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="osd" id="osd" aria-live="polite"></div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/player.js') }}" defer></script>{% endblock %}

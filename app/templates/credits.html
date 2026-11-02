@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Photo credits · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="page-head"><div><h1>Photo credits</h1><p class="muted" style="margin:6px 0 0">Cover photos are real photographs shared under free licences on Wikimedia Commons. Thank you to every photographer.</p></div></div>
+  <section class="panel"><div class="table-scroll"><table class="tbl">
+    <thead><tr><th></th><th>Film</th><th>Photo</th><th>Photographer</th><th>Licence</th></tr></thead>
+    <tbody>{% for slug, c in covers.items() %}<tr>
+      <td style="width:60px"><img src="{{ url_for('static', filename=c.file) }}" alt="" width="52" height="34" loading="lazy" style="object-fit:cover;border-radius:6px"></td>
+      <td><a href="{{ url_for('main.detail', slug=slug) }}"><b>{{ titles.get(slug, slug) }}</b></a></td>
+      <td><a class="gold" href="{{ c.source }}" target="_blank" rel="noopener">{{ c.title }}</a></td>
+      <td>{{ c.author }}</td><td>{{ c.license }}</td></tr>{% endfor %}</tbody>
+  </table></div></section>
+  <p class="hint" style="margin-top:14px">Film clip: <i>Sintel</i> © Blender Foundation, CC BY 3.0. Film titles and people in the catalogue are fictional.</p>
+  <div class="spacer"></div>
+</div>
+{% endblock %}

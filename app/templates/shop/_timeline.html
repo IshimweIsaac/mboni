@@ -1,0 +1,9 @@
+{# Order progress: pending -> paid -> delivered, or the cancelled/refunded ending. #}
+{% set ended = order.status in ('cancelled', 'refunded') %}
+<ol class="timeline" aria-label="Order status">
+  {% for st, label in [('pending', 'Order placed'), ('paid', 'Paid'), ('delivered', 'Delivered')] %}
+  {% set done = st in reached %}
+  <li class="{{ 'done' if done }}{{ ' now' if order.status == st }}"><b>{{ '✓' if done else loop.index }}</b><span>{{ label }}<small>{{ reached[st][5:16] if done else ('waiting' if not ended else '') }}</small></span></li>
+  {% endfor %}
+  {% if ended %}<li class="done ended"><b>✕</b><span>{{ order.status|capitalize }}<small>{{ reached[order.status][5:16] if order.status in reached }}</small></span></li>{% endif %}
+</ol>

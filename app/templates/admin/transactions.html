@@ -1,0 +1,15 @@
+{% extends "admin/_base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Payments · Admin · Mboni{% endblock %}
+{% block admin %}
+<div class="page-head"><div><h1>Payments</h1><p class="muted" style="margin:6px 0 0">{{ rows|length }} transactions · {{ rows|selectattr('status', 'equalto', 'paid')|sum(attribute='amount')|money }} collected</p></div>
+  <a class="btn btn-sm" href="{{ url_for('admin.transactions_csv', **args) }}">{{ ui.icon('download') }} Export CSV</a></div>
+<form class="row-gap" method="get" style="margin-bottom:18px" data-autosubmit>
+  <label class="sr-only" for="st">Status</label>
+  <select class="input" id="st" name="status" style="width:auto"><option value="">All statuses</option>{% for s in ['paid', 'pending', 'failed', 'refunded'] %}<option {% if args.get('status') == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+  <label class="sr-only" for="kd">Type</label>
+  <select class="input" id="kd" name="kind" style="width:auto"><option value="">All types</option>{% for k in ['subscription', 'rent', 'buy', 'order'] %}<option {% if args.get('kind') == k %}selected{% endif %}>{{ k }}</option>{% endfor %}</select>
+  <noscript><button class="btn">Filter</button></noscript>
+</form>
+<section class="panel">{% include "admin/_tx_table.html" %}</section>
+{% endblock %}

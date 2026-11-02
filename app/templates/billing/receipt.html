@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ 'Payment complete' if tx.status == 'paid' else 'Payment not completed' }} · Mboni{% endblock %}
+{% block nav_class %}always-solid{% endblock %}
+{% block main %}
+<div class="wrap page">
+  <div class="receipt" {% if tx.status == 'paid' and request.referrer and '/pay/' in request.referrer %}data-celebrate{% endif %}>
+    <div class="steps"><span class="done"><b>✓</b> Choose</span><span class="{{ 'done' if tx.status == 'paid' else 'on' }}"><b>{{ '✓' if tx.status == 'paid' else '2' }}</b> Pay</span><span class="{{ 'on' if tx.status == 'paid' }}"><b>3</b> Watch</span></div>
+    {% if tx.status == 'paid' %}
+      <div class="big-ic ok">{{ ui.icon('check') }}</div>
+      <h1 style="font-size:clamp(1.6rem,4vw,2.4rem)">Murakoze! You're all set.</h1>
+      <p class="muted">{% if tx.kind == 'subscription' %}Your {{ tx.plan_name }} plan is active. Every film in the catalogue is now unlocked.{% elif tx.kind == 'rent' %}{{ tx.title }} is yours for the next 48 hours.{% else %}{{ tx.title }} is now in your Library forever.{% endif %}</p>
+    {% elif tx.status == 'failed' %}
+      <div class="big-ic bad">{{ ui.icon('x') }}</div>
+      <h1 style="font-size:clamp(1.6rem,4vw,2.4rem)">Payment didn't go through</h1>
+      <p class="muted">Nothing was charged. This can happen if the request timed out, the PIN was wrong, or there wasn't enough balance.</p>
+    {% else %}
+      <div class="big-ic" style="background:var(--surface-2)"><div class="ring" style="width:40px;height:40px"></div></div><h1>Waiting for approval</h1>
+    {% endif %}
+    <dl>
+      <dt>Reference</dt><dd>{{ tx.ref }}</dd>
+      <dt>Item</dt><dd>{{ tx.title or (tx.plan_name ~ ' plan') }} · {{ tx.kind }}</dd>
+      <dt>Paid with</dt><dd>{{ methods[tx.method] }} {{ tx.account }}</dd>
+      {% if tx.discount %}<dt>Promo {{ tx.promo_code }}</dt><dd class="gold">−{{ tx.discount|money }}</dd>{% endif %}
+      <dt>Total</dt><dd>{{ tx.amount|money }}</dd>
+      <dt>Date</dt><dd>{{ tx.created_at }}</dd>
+    </dl>
+    <div class="row-gap" style="justify-content:center">
+      {% if tx.status == 'paid' %}
+        {% if tx.slug %}<a class="btn btn-gold" href="{{ url_for('main.watch', slug=tx.slug) }}">{{ ui.icon('play') }} {{ t('watch_now') }}</a>
+        {% else %}<a class="btn btn-gold" href="{{ url_for('main.browse') }}">{{ ui.icon('play') }} Start watching</a>{% endif %}
+        <button class="btn" type="button" onclick="window.print()">Print receipt</button>
+      {% else %}
+        <a class="btn btn-gold" href="{{ url_for('billing.checkout', kind=tx.kind, plan=tx.plan_code, movie=tx.slug) }}">Try again</a>
+        <a class="btn" href="{{ url_for('main.browse') }}">Back to browsing</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

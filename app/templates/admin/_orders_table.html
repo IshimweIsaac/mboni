@@ -1,0 +1,12 @@
+<div class="table-scroll"><table class="tbl">
+  <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Films</th><th>Total</th><th>Status</th><th></th></tr></thead>
+  <tbody>{% for o in orders %}<tr>
+    <td><a href="{{ url_for('admin.order_detail', ref=o.ref) }}"><code style="font-size:.82rem">{{ o.ref }}</code></a></td>
+    <td>{{ o.created_at[:16] }}</td>
+    <td><b>{{ o.contact_name }}</b><br><span class="faint" style="font-size:.8rem">{{ o.phone }}</span></td>
+    <td>{{ o.titles or '' }}<span class="faint"> {{ o.copies }} cop{{ 'y' if o.copies == 1 else 'ies' }}</span></td>
+    <td><b>{{ o.total|money }}</b>{% if o.promo_code %} <span class="tag">{{ o.promo_code }}</span>{% endif %}</td>
+    <td><span class="status {{ o.status }}">{{ o.status }}</span></td>
+    <td><a class="btn btn-sm" href="{{ url_for('admin.order_detail', ref=o.ref) }}">{{ 'Deliver' if o.status == 'paid' else 'Open' }}</a></td></tr>
+  {% else %}<tr><td colspan="7" class="muted">No orders match.</td></tr>{% endfor %}</tbody>
+</table></div>

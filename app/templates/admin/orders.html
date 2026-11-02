@@ -1,0 +1,17 @@
+{% extends "admin/_base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Orders · Admin · Mboni{% endblock %}
+{% block admin %}
+<div class="page-head"><div><h1>Orders</h1><p class="muted" style="margin:6px 0 0">{{ orders|length }} shown · {{ orders|selectattr('status', 'in', ['paid', 'delivered'])|sum(attribute='total')|money }} paid</p></div></div>
+<nav class="lib-tabs" aria-label="Filter by status">
+  <a class="tab-link" href="{{ url_for('admin.orders', q=q or None) }}" {% if not status %}aria-current="page"{% endif %}>All ({{ counts.values()|sum }})</a>
+  {% for s in statuses %}<a class="tab-link" href="{{ url_for('admin.orders', status=s, q=q or None) }}" {% if status == s %}aria-current="page"{% endif %}>{{ s|capitalize }} ({{ counts.get(s, 0) }})</a>{% endfor %}
+</nav>
+<form class="row-gap" method="get" role="search" style="margin-bottom:18px">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <label class="sr-only" for="oq">Search orders</label>
+  <input class="input" id="oq" name="q" value="{{ q }}" placeholder="Order number, name, email or phone" style="flex:1;min-width:220px">
+  <button class="btn">{{ ui.icon('search') }} Search</button>
+</form>
+<section class="panel">{% include "admin/_orders_table.html" %}</section>
+{% endblock %}

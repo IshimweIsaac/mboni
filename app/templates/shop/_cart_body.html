@@ -1,0 +1,95 @@
+{% import "partials/macros.html" as ui with context %}
+{% if lines %}
+<div class="cart-layout">
+  <section class="cart-lines" aria-label="Films in your cart">
+    {% for l in lines %}{% set m = l.movie %}
+    <article class="cart-line{{ ' unavailable' if not l.available }}">
+      <a class="cart-art" href="{{ url_for('main.detail', slug=m.slug) }}" tabindex="-1" aria-hidden="true">{{ ui.art(m, badges=False, show_title=False) }}</a>
+      <div class="cart-info">
+        <a href="{{ url_for('main.detail', slug=m.slug) }}"><h2>{{ m.title }}</h2></a>
+        <p class="faint">{{ m.year }} · {{ m.country }} · {{ m.runtime|runtime }} · {{ m.age }}</p>
+
+        <form class="seg" method="post" action="{{ url_for('shop.update') }}" data-cart-form data-submit-on-change>
+          <input type="hidden" name="csrf" value="{{ csrf_token }}"><input type="hidden" name="movie" value="{{ m.slug }}">
+          <fieldset><legend class="sr-only">Rent or buy {{ m.title }}</legend>
+            <label><input type="radio" name="kind" value="rent" {% if l.kind == 'rent' %}checked{% endif %}><span>{{ ui.icon('clock') }} Rent 48h · {{ (l.unit if l.kind == 'rent' else access_for(m).rent_price)|money }}</span></label>
+            <label><input type="radio" name="kind" value="buy" {% if l.kind == 'buy' %}checked{% endif %}><span>{{ ui.icon('key') }} Buy &amp; keep · {{ (l.unit if l.kind == 'buy' else access_for(m).buy_price)|money }}</span></label>
+          </fieldset>
+          <noscript><button class="btn btn-sm">Update</button></noscript>
+        </form>
+
+        <p class="cart-note">
+          {% if not l.available %}<span class="error-text">{{ l.note }}</span>
+          {% else %}
+            {{ ui.icon('gift') if l.gifts else ui.icon('check') }}
+            {% if l.mine and l.gifts %}1 for your Library + {{ l.gifts }} gift code{{ 's' if l.gifts > 1 }} to share
+            {% elif l.mine %}Goes straight to your Library{% if l.kind == 'rent' %} for 48 hours{% endif %}
+            {% else %}{{ l.gifts }} gift code{{ 's' if l.gifts > 1 }}. {{ l.note }}{% endif %}
+          {% endif %}
+        </p>
+
+        <div class="cart-actions">
+          {% if g.profile %}
+          <form method="post" action="{{ url_for('shop.save_for_later') }}" data-cart-form>
+            <input type="hidden" name="csrf" value="{{ csrf_token }}"><input type="hidden" name="movie" value="{{ m.slug }}">
+            <button class="link-btn">{{ ui.icon('list') }} Save for later</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('shop.remove') }}" data-cart-form>
+            <input type="hidden" name="csrf" value="{{ csrf_token }}"><input type="hidden" name="movie" value="{{ m.slug }}">
+            <button class="link-btn danger">{{ ui.icon('trash') }} Remove</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="cart-side">
+        <form class="stepper" method="post" action="{{ url_for('shop.update') }}" data-cart-form>
+          <input type="hidden" name="csrf" value="{{ csrf_token }}"><input type="hidden" name="movie" value="{{ m.slug }}">
+          <button name="qty" value="{{ l.qty - 1 }}" aria-label="One copy fewer of {{ m.title }}" title="{{ 'Remove' if l.qty == 1 else 'One fewer' }}">{{ ui.icon('trash' if l.qty == 1 else 'minus') }}</button>
+          <output aria-live="polite" aria-label="Copies of {{ m.title }}">{{ l.qty }}</output>
+          <button name="qty" value="{{ l.qty + 1 }}" aria-label="One more copy of {{ m.title }}" title="One more (as a gift)" {% if l.qty >= 10 %}disabled{% endif %}>{{ ui.icon('plus') }}</button>
+        </form>
+        <div class="cart-price">
+          <b>{{ l.line|money }}</b>
+          {% if l.qty > 1 %}<span class="faint">{{ l.qty }} × {{ l.unit|money }}</span>{% endif %}
+          {% if l.unit < l.list_unit %}<span class="gold">Subscriber price</span>{% endif %}
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+    <div class="row-gap" style="justify-content:space-between;margin-top:6px">
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('main.search') }}">{{ ui.icon('back') }} Keep browsing</a>
+      <form method="post" action="{{ url_for('shop.clear') }}" data-cart-form data-confirm="Remove every film from your cart?">
+        <input type="hidden" name="csrf" value="{{ csrf_token }}"><button class="link-btn danger">Empty cart</button>
+      </form>
+    </div>
+  </section>
+
+  <aside class="panel summary" aria-label="Cart summary">
+    <h2 style="font-size:1.2rem;margin-bottom:10px">Summary</h2>
+    <div class="line"><span>{{ totals['items'] }} cop{{ 'y' if totals['items'] == 1 else 'ies' }} · {{ lines|length }} film{{ 's' if lines|length != 1 }}</span><span>{{ totals.subtotal|money }}</span></div>
+    {% if totals.savings %}<div class="line"><span>Subscriber savings</span><span class="gold">−{{ totals.savings|money }} included</span></div>{% endif %}
+    {% if totals.gifts %}<div class="line"><span>{{ ui.icon('gift') }} Gift codes</span><span>{{ totals.gifts }}</span></div>{% endif %}
+    <div class="line"><span>Delivery</span><span class="leaf">Instant · digital</span></div>
+    <div class="line total"><span>Subtotal</span><b>{{ totals.subtotal|money }}</b></div>
+    <p class="hint" style="margin:6px 0 16px">≈ {{ "{:,.2f}".format(totals.subtotal / 1400) }} USD. Promo codes are added at the next step.</p>
+    {% set blocked = lines|rejectattr('available')|list %}
+    {% if g.user %}
+      <a class="btn btn-gold btn-block{{ ' disabled' if blocked }}" href="{{ url_for('shop.checkout') }}" {% if blocked %}aria-disabled="true"{% endif %}>{{ ui.icon('lock') }} Checkout</a>
+    {% else %}
+      <a class="btn btn-gold btn-block" href="{{ url_for('auth.login', next=url_for('shop.checkout')) }}">{{ ui.icon('lock') }} Sign in to check out</a>
+      <p class="hint" style="margin-top:10px;text-align:center">New here? <a class="gold" href="{{ url_for('auth.register') }}">Create a free account</a>. Your cart comes with you.</p>
+    {% endif %}
+    <div class="pay-logos small" style="margin-top:16px">
+      <span class="pay-logo"><i style="background:#ffcb05"></i>MoMo</span><span class="pay-logo"><i style="background:#e40000"></i>Airtel</span><span class="pay-logo"><i style="background:#4250c8"></i>Card</span>
+    </div>
+  </aside>
+</div>
+{% else %}
+<div class="empty">
+  {{ ui.icon('cart') }}
+  <h2>Your cart is empty</h2>
+  <p class="muted">Rent a film for 48 hours or buy it to keep. Add extra copies to send as gifts.</p>
+  <a class="btn btn-gold" href="{{ url_for('main.search') }}" style="margin-top:12px">{{ ui.icon('search') }} Browse the catalogue</a>
+</div>
+{% endif %}

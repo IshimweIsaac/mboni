@@ -1,0 +1,25 @@
+{% extends "admin/_base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}Messages · Admin · Mboni{% endblock %}
+{% block admin %}
+<div class="page-head"><div><h1>Messages</h1><p class="muted" style="margin:6px 0 0">Sent from the Help page contact form.</p></div></div>
+<nav class="lib-tabs" aria-label="Filter messages">
+  {% for s, label in [('open', 'Open'), ('answered', 'Answered'), ('all', 'All')] %}<a class="tab-link" href="{{ url_for('admin.messages', status=s) }}" {% if status == s %}aria-current="page"{% endif %}>{{ label }} ({{ counts.values()|sum if s == 'all' else counts.get(s, 0) }})</a>{% endfor %}
+</nav>
+<div class="stack">
+{% for m in messages %}
+  <article class="panel panel-tight message">
+    <header class="row-gap" style="justify-content:space-between"><div><b>{{ m.name }}</b> <a class="faint" href="mailto:{{ m.email }}">{{ m.email }}</a></div><div class="row-gap"><span class="tag">{{ m.topic }}</span><span class="status {{ m.status }}">{{ m.status }}</span><span class="faint" style="font-size:.8rem">{{ m.created_at[:16] }}</span></div></header>
+    <p style="margin:10px 0">{{ m.body }}</p>
+    <form method="post" action="{{ url_for('admin.message_update', mid=m.id) }}" class="row-gap">
+      <input type="hidden" name="csrf" value="{{ csrf_token }}"><input type="hidden" name="back" value="{{ status }}">
+      <a class="btn btn-sm" href="mailto:{{ m.email }}?subject=Re: {{ m.topic|urlencode }}">{{ ui.icon('mail') }} Reply by email</a>
+      {% if m.status == 'open' %}<button class="btn btn-sm btn-gold" name="status" value="answered">{{ ui.icon('check') }} Mark answered</button>
+      {% else %}<button class="btn btn-sm btn-ghost" name="status" value="open">Reopen</button>{% endif %}
+    </form>
+  </article>
+{% else %}
+  <div class="empty">{{ ui.icon('chat') }}<h2>Inbox zero</h2><p class="muted">No {{ status if status != 'all' else '' }} messages.</p></div>
+{% endfor %}
+</div>
+{% endblock %}

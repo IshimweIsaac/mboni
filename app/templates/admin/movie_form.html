@@ -1,0 +1,38 @@
+{% extends "admin/_base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ 'Edit' if mid else 'Add' }} film · Admin · Mboni{% endblock %}
+{% block admin %}
+<div class="page-head"><div><h1>{{ 'Edit ' ~ movie.title if mid else 'Add a film' }}</h1></div></div>
+<div class="checkout">
+<form method="post" class="panel" novalidate id="movie-form">
+  <input type="hidden" name="csrf" value="{{ csrf_token }}">
+  {% if errors %}<div class="toast error" role="alert" style="animation:none;margin-bottom:16px">Some fields need attention.</div>{% endif %}
+  <div class="form-grid">
+    {% macro f(name, label, type="text", full=False, hint="") -%}
+    <div class="field {{ 'full' if full }}"><label for="f-{{ name }}">{{ label }}</label>
+      {% if type == 'textarea' %}<textarea class="input" id="f-{{ name }}" name="{{ name }}" {% if errors[name] %}aria-invalid="true"{% endif %}>{{ movie[name] or '' }}</textarea>
+      {% else %}<input class="input" id="f-{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ movie[name] if movie[name] is not none else '' }}" {% if errors[name] %}aria-invalid="true"{% endif %} data-preview="{{ name }}">{% endif %}
+      {% if errors[name] %}<span class="error-text">{{ errors[name] }}</span>{% elif hint %}<span class="hint">{{ hint }}</span>{% endif %}</div>
+    {%- endmacro %}
+    {{ f('title', 'Title') }}{{ f('tagline', 'Tagline') }}
+    {{ f('year', 'Year', 'number') }}{{ f('runtime', 'Runtime (minutes)', 'number') }}
+    {{ f('country', 'Country') }}{{ f('language', 'Language(s)', hint='Comma separated') }}
+    {{ f('genres', 'Genres', hint='Comma separated, e.g. Drama,Family') }}{{ f('age', 'Age rating', hint='All, PG, 13+, 16+, 18+') }}
+    {{ f('director', 'Director') }}{{ f('cast_list', 'Cast') }}
+    {{ f('synopsis', 'Synopsis', 'textarea', True) }}
+    {{ f('award', 'Award (optional)', full=True) }}
+    <div class="field"><label for="f-access">Access</label><select class="input" id="f-access" name="access">{% for v, l in [('sub', 'Included in plans'), ('premiere', 'Premiere (pay-per-view)'), ('free', 'Free')] %}<option value="{{ v }}" {% if movie.access == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="f-pattern">Poster pattern</label><select class="input" id="f-pattern" name="pattern" data-preview="pattern">{% for p in patterns %}<option {% if movie.pattern == p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+    {{ f('rent_price', 'Rent price (RWF)', 'number') }}{{ f('buy_price', 'Buy price (RWF)', 'number') }}
+    {{ f('c1', 'Main colour', 'color') }}{{ f('c2', 'Shadow colour', 'color') }}{{ f('c3', 'Pattern colour', 'color') }}
+    <div class="field full row-gap" style="gap:24px">
+      <label class="check"><input type="checkbox" name="is_kids" {% if movie.is_kids %}checked{% endif %}> Kids-safe</label>
+      <label class="check"><input type="checkbox" name="featured" {% if movie.featured %}checked{% endif %}> Feature on home hero</label>
+      <label class="check"><input type="checkbox" name="coming_soon" {% if movie.available == 0 %}checked{% endif %}> Coming soon (not yet for rent or sale)</label>
+    </div>
+  </div>
+  <div class="row-gap" style="margin-top:20px"><button class="btn btn-gold">Save film</button><a class="btn" href="{{ url_for('admin.movie_list') }}">Cancel</a></div>
+</form>
+<aside class="panel summary"><h2 style="margin-bottom:14px">Live poster preview</h2><div class="preview-art" style="margin:0 auto"><div class="art pat-{{ movie.pattern }}" id="preview" style="--c1:{{ movie.c1 }};--c2:{{ movie.c2 }};--c3:{{ movie.c3 }}"><div class="art-title"><small id="pv-country">{{ movie.country or 'Country' }}</small><span id="pv-title">{{ movie.title or 'Film title' }}</span></div></div></div><p class="hint" style="text-align:center;margin-top:12px">Posters are generated from colours and traditional African patterns, so every film looks great with no image upload.</p></aside>
+</div>
+{% endblock %}
