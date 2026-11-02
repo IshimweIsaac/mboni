@@ -15,10 +15,16 @@ def create_app(test_config=None):
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
         WTF_CSRF=True,
+        # On the live server (behind Cloudflare's HTTPS) the login cookie is only ever sent over HTTPS.
+        SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE") == "1",
     )
     if test_config:
         app.config.update(test_config)
     os.makedirs(app.instance_path, exist_ok=True)
+    if os.environ.get("BEHIND_PROXY") == "1":
+        # Trust the scheme/host that the Cloudflare Tunnel forwards, so redirects and links stay on https.
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     db.init_app(app)
 
