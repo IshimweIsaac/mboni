@@ -1,0 +1,6 @@
+[Unit]
+Description=Deploy new Mboni commits from GitHub (tests first)
+
+[Service]
+Type=oneshot
+ExecStart=%h/srv/mboni/deploy/update.sh

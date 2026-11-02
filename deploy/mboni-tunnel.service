@@ -1,0 +1,11 @@
+[Unit]
+Description=Cloudflare Tunnel for Mboni
+After=network-online.target mboni.service
+
+[Service]
+ExecStart=/usr/local/bin/cloudflared --no-autoupdate tunnel --config %h/.cloudflared/mboni.yml run mboni
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
